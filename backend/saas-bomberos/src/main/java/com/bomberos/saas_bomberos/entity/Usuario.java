@@ -1,5 +1,6 @@
 package com.bomberos.saas_bomberos.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -20,6 +21,7 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore
     @NotBlank(message = "La contraseña es obligatoria")
     @Column(nullable = false)
     private String password;
@@ -29,7 +31,7 @@ public class Usuario {
     private Bombero bombero;
 
     @ManyToOne
-    @JoinColumn(name = "rol_id")
+    @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
     @ManyToMany
