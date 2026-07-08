@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +35,11 @@ public class Usuario {
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
+    // Excluida del toString() generado por Lombok: al ser lazy, Spring
+    // Security intenta loguear el principal autenticado (toString) fuera
+    // del ciclo de vida de la sesión de Hibernate, lo que dispara un
+    // LazyInitializationException en cualquier request autenticado.
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "usuarios_permisos_extra",

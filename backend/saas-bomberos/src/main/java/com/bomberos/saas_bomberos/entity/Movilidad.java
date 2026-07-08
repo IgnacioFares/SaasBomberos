@@ -1,7 +1,9 @@
 package com.bomberos.saas_bomberos.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -14,17 +16,26 @@ public class Movilidad {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "El número de móvil es obligatorio")
-    @Column(nullable = false, unique = true)
-    private String numeroMovil;
+    @NotBlank(message = "El nombre es obligatorio")
+    @Column(nullable = false)
+    private String nombre;
 
-    @NotBlank(message = "La patente es obligatoria")
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String patente;
 
     private String modelo;
 
     private String marca;
+
+    @NotNull(message = "El kilometraje es obligatorio")
+    @Min(value = 0, message = "El kilometraje no puede ser negativo")
+    @Column(nullable = false)
+    private Integer kilometraje = 0;
+
+    // Estado operativo del vehículo (en servicio / fuera de servicio),
+    // distinto de "activo" que es la baja lógica del registro.
+    @Column(name = "en_servicio", nullable = false)
+    private Boolean enServicio = true;
 
     private String descripcion;
 

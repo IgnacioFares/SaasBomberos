@@ -3,6 +3,7 @@ package com.bomberos.saas_bomberos.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.ToString;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +22,10 @@ public class Rol {
 
     private String descripcion;
 
+    // Ver el comentario equivalente en Usuario.permisosExtra: se excluye
+    // del toString() para evitar LazyInitializationException cuando
+    // Spring Security loguea el principal autenticado.
+    @ToString.Exclude
     @ManyToMany
     @JoinTable(
             name = "roles_permisos",

@@ -10,7 +10,7 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
 import { useAuthContext } from '../../auth/hooks/useAuthContext'
 import useClock from '../hooks/useClock'
 import useDashboardStats from '../hooks/useDashboardStats'
-import StatCard from '../components/StatCard'
+import StatCard from '../../../components/StatCard'
 
 const saludoSegunHora = (hora: number) => {
   if (hora < 12) return 'Buenos días'
@@ -24,7 +24,7 @@ const iniciales = (nombre?: string, apellido?: string) =>
 const DashboardPage = () => {
   const { usuario } = useAuthContext()
   const ahora = useClock()
-  const { bomberosActivos, movilidades, checklists, cargando } = useDashboardStats()
+  const { bomberosActivos, movilidades, checklistsPendientes, cargando } = useDashboardStats()
 
   const fecha = ahora.toLocaleDateString('es-AR', {
     weekday: 'long',
@@ -116,8 +116,8 @@ const DashboardPage = () => {
         />
         <StatCard
           icono={ChecklistRoundedIcon}
-          etiqueta="Checklists disponibles"
-          valor={checklists}
+          etiqueta="Checklists por firmar"
+          valor={checklistsPendientes}
           color="amber"
           cargando={cargando}
         />
@@ -129,7 +129,7 @@ const DashboardPage = () => {
         />
       </Box>
 
-      <Box className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Paper elevation={0} className="rounded-2xl! flex flex-col gap-4 border border-slate-200 p-6">
           <Box>
             <Typography variant="subtitle1" className="font-semibold!">
@@ -190,6 +190,27 @@ const DashboardPage = () => {
             className="self-start!"
           >
             Ir a Checklists
+          </Button>
+        </Paper>
+
+        <Paper elevation={0} className="rounded-2xl! flex flex-col gap-4 border border-slate-200 p-6">
+          <Box>
+            <Typography variant="subtitle1" className="font-semibold!">
+              Inventario
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Stock, estados, ubicaciones y vencimientos del equipamiento.
+            </Typography>
+          </Box>
+          <Button
+            component={RouterLink}
+            to="/inventario"
+            variant="outlined"
+            color="primary"
+            endIcon={<ArrowForwardRoundedIcon />}
+            className="self-start!"
+          >
+            Ir a Inventario
           </Button>
         </Paper>
       </Box>

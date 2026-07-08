@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import api from '../../../services'
 import { getBomberos } from '../../bomberos/services/bomberoService'
-import { getTemplates } from '../../checklists/services/checklistService'
+import { getRegistros } from '../../checklists/services/checklistService'
 
 interface DashboardStats {
   bomberosActivos: number | null
   movilidades: number | null
-  checklists: number | null
+  checklistsPendientes: number | null
   cargando: boolean
 }
 
@@ -14,7 +14,7 @@ const useDashboardStats = () => {
   const [stats, setStats] = useState<DashboardStats>({
     bomberosActivos: null,
     movilidades: null,
-    checklists: null,
+    checklistsPendientes: null,
     cargando: true,
   })
 
@@ -25,7 +25,7 @@ const useDashboardStats = () => {
       const [bomberosResultado, movilidadesResultado, checklistsResultado] = await Promise.allSettled([
         getBomberos(),
         api.get('/api/movilidades'),
-        getTemplates(),
+        getRegistros({ estado: 'PENDIENTE_FIRMA' }),
       ])
 
       if (!activo) return
@@ -39,7 +39,7 @@ const useDashboardStats = () => {
           movilidadesResultado.status === 'fulfilled'
             ? (movilidadesResultado.value.data as unknown[]).length
             : null,
-        checklists:
+        checklistsPendientes:
           checklistsResultado.status === 'fulfilled' ? checklistsResultado.value.length : null,
         cargando: false,
       })

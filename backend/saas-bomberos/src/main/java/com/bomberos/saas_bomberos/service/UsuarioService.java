@@ -44,6 +44,16 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    public Usuario asignarRol(Long usuarioId, Long rolId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Rol rol = rolRepository.findById(rolId)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+
+        usuario.setRol(rol);
+        return usuarioRepository.save(usuario);
+    }
+
     public String login(String email, String password) {
         Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email o contraseña incorrectos"));

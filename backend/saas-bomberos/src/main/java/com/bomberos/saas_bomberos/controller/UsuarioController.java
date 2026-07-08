@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 // Le dice a Spring: "esta clase es un controlador REST, recibe peticiones
 // HTTP y devuelve respuestas en formato JSON automáticamente".
@@ -64,6 +66,56 @@ public class UsuarioController {
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
+    // Escucha peticiones GET a /api/usuarios/me
+    // Devuelve los datos del usuario autenticado (a partir del JWT
+    // enviado en el header Authorization). El JwtAuthenticationFilter
+    // ya se encarga de resolver el Usuario y dejarlo como principal.
+    //
+    // Se arma un DTO en lugar de devolver la entidad Usuario tal cual:
+    // el filtro JWT resuelve el usuario fuera del ciclo de vida normal
+    // de la request, así que las colecciones @ManyToMany (lazy) como
+    // Rol.permisos o Usuario.permisosExtra ya no tienen sesión de
+    // Hibernate disponible para inicializarse al serializar.
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioActualResponse> me(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(new UsuarioActualResponse(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getBombero(),
+                usuario.getRol().getNombre(),
+                usuario.getEstado()
+        ));
+    }
+
+    // Escucha peticiones PUT a /api/usuarios/{id}/rol
+    // Reasigna el rol de un usuario existente. Por ahora no está
+    // restringido a administradores (todavía no hay autorización por
+    // rol/permiso en SecurityConfig, solo autenticación), así que
+    // cualquier usuario logueado puede usarlo.
+    @PutMapping("/{id}/rol")
+    public ResponseEntity<UsuarioActualResponse> asignarRol(
+            @PathVariable Long id,
+            @RequestBody AsignarRolRequest request
+    ) {
+        Usuario usuario = usuarioService.asignarRol(id, request.getRolId());
+        return ResponseEntity.ok(new UsuarioActualResponse(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getBombero(),
+                usuario.getRol().getNombre(),
+                usuario.getEstado()
+        ));
+    }
+
+    // Traduce los RuntimeException de negocio del Service (email/DNI
+    // duplicado, credenciales incorrectas, etc.) a una respuesta 400
+    // con el mensaje real, en lugar del 500 genérico que devolvía
+    // Spring por defecto (que además no expone el mensaje al cliente).
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> manejarErrorDeNegocio(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("mensaje", ex.getMessage()));
+    }
+
     // ---------------------------------------------------------
     // Clases DTO (Data Transfer Object): representan la FORMA
     // del JSON que entra o sale por la API. No son entidades de
@@ -96,5 +148,23 @@ public class UsuarioController {
     @Data
     static class LoginResponse {
         private final String token;
+    }
+
+    // Forma del JSON que devuelve /api/usuarios/me: los datos del
+    // usuario logueado junto con su bombero y el nombre de su rol.
+    @Data
+    static class UsuarioActualResponse {
+        private final Long id;
+        private final String email;
+        private final Bombero bombero;
+        private final String rol;
+        private final String estado;
+    }
+
+    // Forma del JSON que el frontend manda para reasignar un rol:
+    // { "rolId": 2 }
+    @Data
+    static class AsignarRolRequest {
+        private Long rolId;
     }
 }

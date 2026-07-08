@@ -17,6 +17,7 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
+import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import { useAuthContext } from '../../features/auth/hooks/useAuthContext'
@@ -28,6 +29,7 @@ const navItems = [
   { to: '/bomberos', label: 'Personal', icon: PeopleAltRoundedIcon },
   { to: '/movilidades', label: 'Movilidades', icon: DirectionsCarFilledRoundedIcon },
   { to: '/checklists', label: 'Checklists', icon: ChecklistRoundedIcon },
+  { to: '/inventario', label: 'Inventario', icon: Inventory2RoundedIcon },
 ]
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>

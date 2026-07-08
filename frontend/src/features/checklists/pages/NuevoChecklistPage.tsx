@@ -26,11 +26,12 @@ const NuevoChecklistPage = () => {
           Nuevo checklist
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Definí las secciones e ítems que van a controlarse en esta movilidad.
+          Definí las secciones e ítems que van a controlarse en esta movilidad, con cantidades
+          esperadas para los elementos que se cuentan.
         </Typography>
       </Box>
 
-      <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-6">
+      <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-4 sm:p-6">
         <ChecklistTemplateBuilder onGuardar={handleGuardar} loading={loading} error={error} />
       </Paper>
     </Box>

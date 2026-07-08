@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ChecklistTemplate, ChecklistTemplateRequest } from '../types'
-import { getTemplates, createTemplate, deleteTemplate } from '../services/checklistService'
+import { getTemplates, createTemplate, updateTemplate, deleteTemplate } from '../services/checklistService'
 import { extraerMensajeError } from '../../../utils/http'
 
 const useChecklistTemplates = () => {
@@ -32,6 +32,18 @@ const useChecklistTemplates = () => {
     }
   }
 
+  const editar = async (id: number, data: ChecklistTemplateRequest) => {
+    setError(null)
+    try {
+      await updateTemplate(id, data)
+      await cargar()
+      return true
+    } catch (err) {
+      setError(extraerMensajeError(err, 'Error al actualizar el checklist'))
+      return false
+    }
+  }
+
   const eliminar = async (id: number) => {
     setError(null)
     try {
@@ -46,7 +58,7 @@ const useChecklistTemplates = () => {
     cargar()
   }, [])
 
-  return { templates, loading, error, agregar, eliminar }
+  return { templates, loading, error, agregar, editar, eliminar }
 }
 
 export default useChecklistTemplates

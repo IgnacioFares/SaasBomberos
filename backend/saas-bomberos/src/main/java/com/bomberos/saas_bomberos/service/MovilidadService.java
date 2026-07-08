@@ -22,10 +22,8 @@ public class MovilidadService {
     }
 
     public Movilidad guardar(Movilidad movilidad) {
-        if (movilidadRepository.existsByNumeroMovil(movilidad.getNumeroMovil())) {
-            throw new RuntimeException("Ya existe una movilidad con ese número");
-        }
-        if (movilidadRepository.existsByPatente(movilidad.getPatente())) {
+        if (movilidad.getPatente() != null && !movilidad.getPatente().isBlank()
+                && movilidadRepository.existsByPatente(movilidad.getPatente())) {
             throw new RuntimeException("Ya existe una movilidad con esa patente");
         }
         return movilidadRepository.save(movilidad);
@@ -35,10 +33,12 @@ public class MovilidadService {
         Movilidad movilidad = movilidadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movilidad no encontrada"));
 
-        movilidad.setNumeroMovil(movilidadActualizada.getNumeroMovil());
+        movilidad.setNombre(movilidadActualizada.getNombre());
         movilidad.setPatente(movilidadActualizada.getPatente());
         movilidad.setModelo(movilidadActualizada.getModelo());
         movilidad.setMarca(movilidadActualizada.getMarca());
+        movilidad.setKilometraje(movilidadActualizada.getKilometraje());
+        movilidad.setEnServicio(movilidadActualizada.getEnServicio());
         movilidad.setDescripcion(movilidadActualizada.getDescripcion());
 
         return movilidadRepository.save(movilidad);
