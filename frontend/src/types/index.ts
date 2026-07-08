@@ -9,3 +9,15 @@ export interface Bombero {
   fechaIngreso?: string
   activo?: boolean
 }
+
+export interface Movilidad {
+  id?: number
+  nombre: string
+  patente?: string
+  modelo?: string
+  marca?: string
+  kilometraje: number
+  enServicio: boolean
+  descripcion?: string
+  activo?: boolean
+}

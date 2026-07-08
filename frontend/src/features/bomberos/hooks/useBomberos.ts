@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Bombero } from '../../../types'
 import { getBomberos, createBombero, updateBombero, deleteBombero } from '../services/bomberoService'
+import { extraerMensajeError } from '../../../utils/http'
 
 
 const useBomberos = () => {
@@ -14,36 +15,39 @@ const useBomberos = () => {
       const datos = await getBomberos()
       setBomberos(datos)
     } catch (err) {
-      setError('Error al cargar los bomberos')
+      setError(extraerMensajeError(err, 'Error al cargar los bomberos'))
     } finally {
       setLoading(false)
     }
   }
 
   const agregar = async (bombero: Bombero) => {
+    setError(null)
     try {
       await createBombero(bombero)
       await cargarBomberos()
     } catch (err) {
-      setError('Error al crear el bombero')
+      setError(extraerMensajeError(err, 'Error al crear el bombero'))
     }
   }
 
   const actualizar = async (id: number, bombero: Bombero) => {
+    setError(null)
     try {
       await updateBombero(id, bombero)
       await cargarBomberos()
     } catch (err) {
-      setError('Error al actualizar el bombero')
+      setError(extraerMensajeError(err, 'Error al actualizar el bombero'))
     }
   }
 
   const eliminar = async (id: number) => {
+    setError(null)
     try {
       await deleteBombero(id)
       await cargarBomberos()
     } catch (err) {
-      setError('Error al eliminar el bombero')
+      setError(extraerMensajeError(err, 'Error al eliminar el bombero'))
     }
   }
 

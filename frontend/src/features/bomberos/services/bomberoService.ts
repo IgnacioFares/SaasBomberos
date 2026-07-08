@@ -10,9 +10,9 @@ export const getBomberos = async (): Promise<Bombero[]> => {
 
 //Trae los bombero por id
 export const getbomberosById = async (id: number): Promise<Bombero> => {
-    const response = await api.get('/api/bomberos/${id}');
+    const response = await api.get(`/api/bomberos/${id}`);
     return response.data;
-} 
+}
 
 //Crea un nuevo bombero
 export const createBombero = async (bombero: Bombero): Promise<Bombero> =>{
@@ -20,14 +20,14 @@ export const createBombero = async (bombero: Bombero): Promise<Bombero> =>{
     return response.data;
 }
 
-//Actualizar un bombero 
+//Actualizar un bombero
 export const updateBombero = async (id: number, bombero:Bombero): Promise<Bombero> =>{
-    const response = await api.put ('/api/bomberos/${id}', bombero);
+    const response = await api.put(`/api/bomberos/${id}`, bombero);
     return response.data;
 }
 
 //Eliminar un bombero
 export const deleteBombero = async (id:number): Promise<void> =>{
-    await api.delete('/api/bomberos/${id}');
+    await api.delete(`/api/bomberos/${id}`);
 }
 

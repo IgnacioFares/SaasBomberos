@@ -1,52 +1,43 @@
 import { Alert, Box, CircularProgress, Paper, Typography } from '@mui/material'
-import useBomberos from '../hooks/useBomberos'
-import BomberoTable from '../components/BomberoTable'
-import BomberoForm from '../components/BomberoForm'
-import type { Bombero } from '../../../types'
+import useMovilidades from '../hooks/useMovilidades'
+import MovilidadForm from '../components/MovilidadForm'
+import MovilidadTable from '../components/MovilidadTable'
 
-const BomberosPage = () => {
-  const { bomberos, loading, error, agregar, eliminar } = useBomberos()
-
-  const handleGuardar = async (bombero: Bombero) => {
-    await agregar(bombero)
-  }
-
-  const handleEliminar = async (id: number) => {
-    await eliminar(id)
-  }
+const MovilidadesPage = () => {
+  const { movilidades, loading, error, agregar, eliminar } = useMovilidades()
 
   return (
     <Box className="flex flex-col gap-6">
       <Box>
         <Typography variant="h5" className="font-bold!">
-          Personal
+          Movilidades
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Bomberos del cuartel, su rango y sus datos de contacto.
+          Alta y control de la flota del cuartel: estado operativo y kilometraje.
         </Typography>
       </Box>
 
       <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-6">
-        <BomberoForm onGuardar={handleGuardar} />
+        <MovilidadForm onGuardar={agregar} loading={loading} error={error} />
       </Paper>
 
       <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-6">
         <Typography variant="subtitle1" className="mb-3! font-semibold!">
-          Personal disponible
+          Flota registrada
         </Typography>
 
-        {loading && bomberos.length === 0 ? (
+        {loading && movilidades.length === 0 ? (
           <Box className="flex justify-center py-10">
             <CircularProgress size={28} />
           </Box>
         ) : (
           <>
-            {error && bomberos.length === 0 && (
+            {error && movilidades.length === 0 && (
               <Alert severity="error" variant="outlined" className="mb-4!">
                 {error}
               </Alert>
             )}
-            <BomberoTable bomberos={bomberos} onEliminar={handleEliminar} />
+            <MovilidadTable movilidades={movilidades} onEliminar={eliminar} />
           </>
         )}
       </Paper>
@@ -54,4 +45,4 @@ const BomberosPage = () => {
   )
 }
 
-export default BomberosPage
+export default MovilidadesPage
