@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
+  AgregarUnidadesRequest,
+  AjustarStockRequest,
   CambioEstadoRequest,
   CambioUbicacionRequest,
   Equipo,
   EquipoMovimiento,
+  MoverStockRequest,
   ObservacionRequest,
   UnidadUpdateRequest,
 } from '../types'
@@ -13,6 +16,9 @@ import {
   cambiarEstado,
   cambiarUbicacion,
   agregarObservacion,
+  moverStock,
+  ajustarStock,
+  agregarUnidades,
   updateUnidad,
   deleteEquipo,
 } from '../services/inventarioService'
@@ -73,6 +79,12 @@ const useEquipoDetalle = (id: number | null) => {
       ejecutar(() => cambiarUbicacion(id!, data), 'No se pudo cambiar la ubicación'),
     agregarObservacion: (data: ObservacionRequest) =>
       ejecutar(() => agregarObservacion(id!, data), 'No se pudo guardar la observación'),
+    moverStock: (data: MoverStockRequest) =>
+      ejecutar(() => moverStock(id!, data), 'No se pudo mover el stock'),
+    ajustarStock: (data: AjustarStockRequest) =>
+      ejecutar(() => ajustarStock(id!, data), 'No se pudo ajustar el stock'),
+    agregarUnidades: (data: AgregarUnidadesRequest) =>
+      ejecutar(() => agregarUnidades(id!, data), 'No se pudieron agregar las unidades'),
     actualizarUnidad: (unidadId: number, data: UnidadUpdateRequest) =>
       ejecutar(() => updateUnidad(id!, unidadId, data), 'No se pudo actualizar la unidad'),
     eliminar: async () => {

@@ -41,6 +41,16 @@ export interface EquipoUnidad {
   observacion?: string | null
 }
 
+// Línea de stock de un equipo POR_CANTIDAD: cuántos hay en una
+// ubicación y estado dados. El total es la suma de las líneas.
+export interface EquipoStockLinea {
+  id: number
+  ubicacionId?: number | null
+  ubicacionNombre?: string | null
+  estado: EquipoEstado
+  cantidad: number
+}
+
 export interface Equipo {
   id: number
   nombre: string
@@ -63,7 +73,9 @@ export interface Equipo {
   fechaVencimiento?: string | null
   estadoVencimiento: EstadoVencimiento
   observaciones?: string | null
-  unidadesPorEstado?: Partial<Record<EquipoEstado, number>> | null
+  // Conteo por estado en ambos modos (stock o unidades).
+  cantidadPorEstado: Partial<Record<EquipoEstado, number>>
+  stock: EquipoStockLinea[]
   unidades: EquipoUnidad[]
   createdAt: string
 }
@@ -109,6 +121,40 @@ export interface UnidadUpdateRequest {
   numeroSerie?: string | null
   fechaVencimiento?: string | null
 }
+
+export interface MoverStockRequest {
+  stockId: number
+  cantidad: number
+  ubicacionDestinoId?: number | null
+  estadoDestino?: EquipoEstado
+  nota?: string
+}
+
+export interface AjustarStockRequest {
+  stockId?: number
+  ubicacionId?: number | null
+  estado?: EquipoEstado
+  cantidad: number
+  nota?: string
+}
+
+export interface AgregarUnidadesRequest {
+  cantidad: number
+  estado?: EquipoEstado
+  ubicacionId?: number | null
+  nota?: string
+}
+
+// Acción en curso sobre un equipo, una unidad puntual o una línea de
+// stock; discrimina qué dialog se muestra en el detalle.
+export type AccionEquipo =
+  | { tipo: 'estado'; unidad?: EquipoUnidad }
+  | { tipo: 'ubicacion'; unidad?: EquipoUnidad }
+  | { tipo: 'observacion'; unidad?: EquipoUnidad }
+  | { tipo: 'editar-unidad'; unidad: EquipoUnidad }
+  | { tipo: 'mover-stock'; linea: EquipoStockLinea }
+  | { tipo: 'ajustar-stock'; linea?: EquipoStockLinea }
+  | { tipo: 'agregar-unidades' }
 
 export interface EquipoMovimiento {
   id: number

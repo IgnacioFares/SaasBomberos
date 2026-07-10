@@ -22,6 +22,7 @@ import {
   Typography,
 } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
+import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded'
@@ -36,13 +37,17 @@ import useEquipoDetalle from '../hooks/useEquipoDetalle'
 import useUbicaciones from '../hooks/useUbicaciones'
 import MovimientosTimeline from '../components/MovimientosTimeline'
 import {
+  AgregarUnidadesDialog,
+  AjustarStockDialog,
   CambiarEstadoDialog,
   CambiarUbicacionDialog,
   EditarUnidadDialog,
+  MoverStockDialog,
   ObservacionDialog,
   type AccionEquipo,
 } from '../components/EquipoAccionDialogs'
 import { ESTILO_EQUIPO_ESTADO, ESTILO_VENCIMIENTO, formatearFecha } from '../constants'
+import { unidadDeAccion } from '../utils'
 import type { EquipoUnidad } from '../types'
 
 const EquipoDetallePage = () => {
@@ -60,6 +65,9 @@ const EquipoDetallePage = () => {
     cambiarEstado,
     cambiarUbicacion,
     agregarObservacion,
+    moverStock,
+    ajustarStock,
+    agregarUnidades,
     actualizarUnidad,
     eliminar,
   } = useEquipoDetalle(id ? Number(id) : null)
@@ -96,7 +104,6 @@ const EquipoDetallePage = () => {
   }
 
   const porUnidad = equipo.seguimiento === 'POR_UNIDAD'
-  const estiloEstado = ESTILO_EQUIPO_ESTADO[equipo.estado]
   const estiloVencimiento = ESTILO_VENCIMIENTO[equipo.estadoVencimiento]
 
   const dato = (etiqueta: string, valor?: React.ReactNode) =>
@@ -159,21 +166,6 @@ const EquipoDetallePage = () => {
                 size="small"
                 sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
               />
-              {!porUnidad && (
-                <Chip
-                  label={estiloEstado.label}
-                  size="small"
-                  sx={{ bgcolor: estiloEstado.bg, color: estiloEstado.color, fontWeight: 700 }}
-                />
-              )}
-              {!porUnidad && equipo.ubicacionNombre && (
-                <Chip
-                  icon={<PlaceRoundedIcon sx={{ fontSize: 16 }} />}
-                  label={equipo.ubicacionNombre}
-                  size="small"
-                  sx={{ bgcolor: '#ECFDF9', color: '#0F766E', fontWeight: 600 }}
-                />
-              )}
               {equipo.estadoVencimiento !== 'SIN_VENCIMIENTO' && (
                 <Chip
                   icon={<EventRoundedIcon sx={{ fontSize: 16 }} />}
@@ -230,18 +222,7 @@ const EquipoDetallePage = () => {
           </Alert>
         )}
 
-        {/* Acciones rápidas a nivel equipo (los POR_UNIDAD operan unidad por unidad) */}
         <Box className="flex flex-wrap gap-2">
-          {!porUnidad && (
-            <>
-              <Button size="small" variant="outlined" startIcon={<SwapHorizRoundedIcon />} onClick={() => setAccion({ tipo: 'estado' })}>
-                Cambiar estado
-              </Button>
-              <Button size="small" variant="outlined" startIcon={<PlaceRoundedIcon />} onClick={() => setAccion({ tipo: 'ubicacion' })}>
-                Cambiar ubicación
-              </Button>
-            </>
-          )}
           <Button
             size="small"
             variant="outlined"
@@ -253,12 +234,92 @@ const EquipoDetallePage = () => {
         </Box>
       </Paper>
 
+      {/* Stock por ubicación (POR_CANTIDAD): el total se reparte entre
+          ubicaciones/estados y se opera con Mover / Ajustar. */}
+      {!porUnidad && (
+        <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-4 sm:p-5">
+          <Box className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <Typography variant="subtitle1" className="font-semibold!">
+              Stock por ubicación (total: {equipo.cantidad ?? 0}
+              {equipo.unidadMedida ? ` ${equipo.unidadMedida}` : ''})
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<AddRoundedIcon />}
+              onClick={() => setAccion({ tipo: 'ajustar-stock' })}
+            >
+              Agregar stock
+            </Button>
+          </Box>
+          {equipo.stock.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" className="py-4 text-center">
+              Sin stock cargado. Usá "Agregar stock" para sumar existencias.
+            </Typography>
+          ) : (
+            <Box className="flex flex-col divide-y divide-slate-100">
+              {equipo.stock.map((linea) => {
+                const estiloLinea = ESTILO_EQUIPO_ESTADO[linea.estado]
+                return (
+                  <Box key={linea.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                    <Box className="flex min-w-0 flex-wrap items-center gap-2">
+                      <Typography variant="h6" className="font-bold! tabular-nums">
+                        {linea.cantidad}
+                      </Typography>
+                      <Chip
+                        icon={<PlaceRoundedIcon sx={{ fontSize: 14 }} />}
+                        label={linea.ubicacionNombre ?? 'Sin ubicación'}
+                        size="small"
+                        sx={{ height: 24, bgcolor: '#ECFDF9', color: '#0F766E', fontWeight: 600 }}
+                      />
+                      <Chip
+                        label={estiloLinea.label}
+                        size="small"
+                        sx={{ height: 24, bgcolor: estiloLinea.bg, color: estiloLinea.color, fontWeight: 700 }}
+                      />
+                    </Box>
+                    <Box className="flex shrink-0 items-center gap-1">
+                      <Button
+                        size="small"
+                        startIcon={<SwapHorizRoundedIcon />}
+                        onClick={() => setAccion({ tipo: 'mover-stock', linea })}
+                      >
+                        Mover
+                      </Button>
+                      <Button
+                        size="small"
+                        color="inherit"
+                        sx={{ color: '#64748B' }}
+                        startIcon={<EditRoundedIcon />}
+                        onClick={() => setAccion({ tipo: 'ajustar-stock', linea })}
+                      >
+                        Ajustar
+                      </Button>
+                    </Box>
+                  </Box>
+                )
+              })}
+            </Box>
+          )}
+        </Paper>
+      )}
+
       {/* Unidades individuales */}
       {porUnidad && (
         <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-4 sm:p-5">
-          <Typography variant="subtitle1" className="mb-3! font-semibold!">
-            Unidades ({equipo.unidades.length})
-          </Typography>
+          <Box className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <Typography variant="subtitle1" className="font-semibold!">
+              Unidades ({equipo.unidades.length})
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<AddRoundedIcon />}
+              onClick={() => setAccion({ tipo: 'agregar-unidades' })}
+            >
+              Agregar unidades
+            </Button>
+          </Box>
           <Box className="flex flex-col divide-y divide-slate-100">
             {equipo.unidades.map((unidad) => {
               const estiloUnidad = ESTILO_EQUIPO_ESTADO[unidad.estado]
@@ -362,7 +423,7 @@ const EquipoDetallePage = () => {
         estadoActual={equipo.estado}
         onConfirmar={async (estado, nota) =>
           alTerminar(
-            await cambiarEstado({ estado, unidadId: accion?.unidad?.id, nota: nota || undefined }),
+            await cambiarEstado({ estado, unidadId: unidadDeAccion(accion)?.id, nota: nota || undefined }),
             'Estado actualizado.'
           )
         }
@@ -374,7 +435,7 @@ const EquipoDetallePage = () => {
         ubicaciones={ubicaciones}
         onConfirmar={async (ubicacionId, nota) =>
           alTerminar(
-            await cambiarUbicacion({ ubicacionId, unidadId: accion?.unidad?.id, nota: nota || undefined }),
+            await cambiarUbicacion({ ubicacionId, unidadId: unidadDeAccion(accion)?.id, nota: nota || undefined }),
             'Ubicación actualizada.'
           )
         }
@@ -385,10 +446,31 @@ const EquipoDetallePage = () => {
         onCerrar={cerrarAccion}
         onConfirmar={async (observacion) =>
           alTerminar(
-            await agregarObservacion({ observacion, unidadId: accion?.unidad?.id }),
+            await agregarObservacion({ observacion, unidadId: unidadDeAccion(accion)?.id }),
             'Observación guardada.'
           )
         }
+      />
+      <MoverStockDialog
+        accion={accion}
+        guardando={guardando}
+        onCerrar={cerrarAccion}
+        ubicaciones={ubicaciones}
+        onConfirmar={async (data) => alTerminar(await moverStock(data), 'Stock movido.')}
+      />
+      <AjustarStockDialog
+        accion={accion}
+        guardando={guardando}
+        onCerrar={cerrarAccion}
+        ubicaciones={ubicaciones}
+        onConfirmar={async (data) => alTerminar(await ajustarStock(data), 'Stock actualizado.')}
+      />
+      <AgregarUnidadesDialog
+        accion={accion}
+        guardando={guardando}
+        onCerrar={cerrarAccion}
+        ubicaciones={ubicaciones}
+        onConfirmar={async (data) => alTerminar(await agregarUnidades(data), 'Unidades agregadas.')}
       />
       <EditarUnidadDialog
         accion={accion}

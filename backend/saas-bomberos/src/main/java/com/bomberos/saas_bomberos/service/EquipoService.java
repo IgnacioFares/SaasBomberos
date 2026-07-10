@@ -10,6 +10,7 @@ import com.bomberos.saas_bomberos.entity.EquipoEstado;
 import com.bomberos.saas_bomberos.entity.EquipoMovimiento;
 import com.bomberos.saas_bomberos.entity.EquipoMovimientoTipo;
 import com.bomberos.saas_bomberos.entity.EquipoSeguimiento;
+import com.bomberos.saas_bomberos.entity.EquipoStock;
 import com.bomberos.saas_bomberos.entity.EquipoUnidad;
 import com.bomberos.saas_bomberos.entity.UbicacionEquipo;
 import com.bomberos.saas_bomberos.entity.Usuario;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +78,13 @@ public class EquipoService {
         equipo.setSeguimiento(seguimiento);
         aplicarDatos(equipo, request);
 
+        EquipoEstado estadoInicial = parsearEstado(request.estado());
+        if (estadoInicial == null) estadoInicial = EquipoEstado.EN_DEPOSITO;
+        equipo.setEstado(estadoInicial);
+        UbicacionEquipo ubicacionInicial =
+                request.ubicacionId() != null ? obtenerUbicacion(request.ubicacionId()) : null;
+        equipo.setUbicacion(ubicacionInicial);
+
         String detalleAlta = "Alta de equipo";
         if (seguimiento == EquipoSeguimiento.POR_UNIDAD) {
             Integer cantidadUnidades = request.cantidadUnidades();
@@ -85,11 +94,26 @@ public class EquipoService {
             for (int i = 1; i <= cantidadUnidades; i++) {
                 EquipoUnidad unidad = new EquipoUnidad();
                 unidad.setNumero(i);
-                unidad.setEstado(equipo.getEstado());
-                unidad.setUbicacion(equipo.getUbicacion());
+                unidad.setEstado(estadoInicial);
+                unidad.setUbicacion(ubicacionInicial);
                 equipo.getUnidades().add(unidad);
             }
             detalleAlta += " con " + cantidadUnidades + " unidades";
+        } else {
+            if (request.cantidad() == null || request.cantidad() < 0) {
+                throw new RuntimeException("Indicá una cantidad válida (0 o más)");
+            }
+            // El stock arranca en una única línea; después se reparte
+            // entre ubicaciones con "mover stock".
+            if (request.cantidad() > 0) {
+                EquipoStock linea = new EquipoStock();
+                linea.setCantidad(request.cantidad());
+                linea.setEstado(estadoInicial);
+                linea.setUbicacion(ubicacionInicial);
+                equipo.getStock().add(linea);
+            }
+            detalleAlta += " con " + request.cantidad() + " en "
+                    + nombreUbicacion(ubicacionInicial);
         }
 
         Equipo guardado = equipoRepository.save(equipo);
@@ -97,6 +121,9 @@ public class EquipoService {
         return mapear(guardado);
     }
 
+    // Solo edita los datos descriptivos: el stock (POR_CANTIDAD) y las
+    // unidades (POR_UNIDAD) se gestionan con sus propias acciones para
+    // que todo cambio quede en el historial.
     public EquipoResponse actualizar(Long id, EquipoRequest request, Usuario usuario) {
         exigirPermiso(usuario, "editar");
         Equipo equipo = obtenerEntidad(id);
@@ -106,36 +133,9 @@ public class EquipoService {
             throw new RuntimeException("El tipo de seguimiento no puede cambiarse después del alta");
         }
 
-        // Los cambios de estado/ubicación hechos desde el formulario de
-        // edición también quedan en el historial, igual que las acciones
-        // rápidas, para que la trazabilidad no tenga agujeros.
-        EquipoEstado estadoAnterior = equipo.getEstado();
-        UbicacionEquipo ubicacionAnterior = equipo.getUbicacion();
-        Integer cantidadAnterior = equipo.getCantidad();
-
         aplicarDatos(equipo, request);
         Equipo guardado = equipoRepository.save(equipo);
-
-        if (equipo.getSeguimiento() == EquipoSeguimiento.POR_CANTIDAD) {
-            if (estadoAnterior != guardado.getEstado()) {
-                registrar(guardado, null, EquipoMovimientoTipo.CAMBIO_ESTADO,
-                        etiqueta(estadoAnterior) + " → " + etiqueta(guardado.getEstado()), usuario);
-            }
-            if (!mismaUbicacion(ubicacionAnterior, guardado.getUbicacion())) {
-                registrar(guardado, null, EquipoMovimientoTipo.CAMBIO_UBICACION,
-                        nombreUbicacion(ubicacionAnterior) + " → " + nombreUbicacion(guardado.getUbicacion()),
-                        usuario);
-            }
-        }
-
-        String detalle = "Datos actualizados";
-        if (equipo.getSeguimiento() == EquipoSeguimiento.POR_CANTIDAD
-                && cantidadAnterior != null
-                && !cantidadAnterior.equals(guardado.getCantidad())) {
-            detalle = "Cantidad: " + cantidadAnterior + " → " + guardado.getCantidad();
-        }
-        registrar(guardado, null, EquipoMovimientoTipo.ACTUALIZACION, detalle, usuario);
-
+        registrar(guardado, null, EquipoMovimientoTipo.ACTUALIZACION, "Datos actualizados", usuario);
         return mapear(guardado);
     }
 
@@ -148,7 +148,91 @@ public class EquipoService {
     }
 
     // ------------------------------------------------------------------
-    // Acciones rápidas (equipo o unidad puntual)
+    // Stock por ubicación (POR_CANTIDAD)
+    // ------------------------------------------------------------------
+
+    public EquipoResponse moverStock(Long id, EquipoAccionDto.MoverStockRequest request, Usuario usuario) {
+        exigirPermiso(usuario, "editar");
+        Equipo equipo = obtenerPorCantidad(id);
+
+        EquipoStock origen = obtenerLinea(equipo, request.stockId());
+        if (request.cantidad() == null || request.cantidad() < 1) {
+            throw new RuntimeException("Indicá cuántos querés mover (mínimo 1)");
+        }
+        if (request.cantidad() > origen.getCantidad()) {
+            throw new RuntimeException(
+                    "No hay suficiente stock en el origen (hay " + origen.getCantidad() + ")");
+        }
+
+        UbicacionEquipo ubicacionDestino = request.ubicacionDestinoId() != null
+                ? obtenerUbicacion(request.ubicacionDestinoId())
+                : origen.getUbicacion();
+        EquipoEstado estadoDestino = parsearEstado(request.estadoDestino());
+        if (estadoDestino == null) estadoDestino = origen.getEstado();
+
+        if (mismaUbicacion(origen.getUbicacion(), ubicacionDestino) && origen.getEstado() == estadoDestino) {
+            throw new RuntimeException("El destino es igual al origen: no hay nada que mover");
+        }
+
+        String desde = nombreUbicacion(origen.getUbicacion()) + " (" + etiqueta(origen.getEstado()) + ")";
+        String hacia = nombreUbicacion(ubicacionDestino) + " (" + etiqueta(estadoDestino) + ")";
+
+        origen.setCantidad(origen.getCantidad() - request.cantidad());
+        if (origen.getCantidad() == 0) {
+            equipo.getStock().remove(origen);
+        }
+        sumarALinea(equipo, ubicacionDestino, estadoDestino, request.cantidad());
+
+        equipoRepository.save(equipo);
+
+        EquipoMovimientoTipo tipo = mismaUbicacion(origen.getUbicacion(), ubicacionDestino)
+                ? EquipoMovimientoTipo.CAMBIO_ESTADO
+                : EquipoMovimientoTipo.CAMBIO_UBICACION;
+        registrar(equipo, null, tipo,
+                conNota(request.cantidad() + " movidos: " + desde + " → " + hacia, request.nota()), usuario);
+        return mapear(equipo);
+    }
+
+    public EquipoResponse ajustarStock(Long id, EquipoAccionDto.AjustarStockRequest request, Usuario usuario) {
+        exigirPermiso(usuario, "editar");
+        Equipo equipo = obtenerPorCantidad(id);
+
+        if (request.cantidad() == null || request.cantidad() < 0) {
+            throw new RuntimeException("Indicá una cantidad válida (0 o más)");
+        }
+
+        String detalle;
+        if (request.stockId() != null) {
+            EquipoStock linea = obtenerLinea(equipo, request.stockId());
+            detalle = nombreUbicacion(linea.getUbicacion()) + " (" + etiqueta(linea.getEstado()) + "): "
+                    + linea.getCantidad() + " → " + request.cantidad();
+            if (request.cantidad() == 0) {
+                equipo.getStock().remove(linea);
+            } else {
+                linea.setCantidad(request.cantidad());
+            }
+        } else {
+            if (request.cantidad() == 0) {
+                throw new RuntimeException("Indicá una cantidad mayor a 0 para agregar stock");
+            }
+            UbicacionEquipo ubicacion = request.ubicacionId() != null
+                    ? obtenerUbicacion(request.ubicacionId())
+                    : null;
+            EquipoEstado estado = parsearEstado(request.estado());
+            if (estado == null) estado = EquipoEstado.EN_DEPOSITO;
+            sumarALinea(equipo, ubicacion, estado, request.cantidad());
+            detalle = "+" + request.cantidad() + " en " + nombreUbicacion(ubicacion)
+                    + " (" + etiqueta(estado) + ")";
+        }
+
+        equipoRepository.save(equipo);
+        registrar(equipo, null, EquipoMovimientoTipo.ACTUALIZACION,
+                conNota("Stock ajustado: " + detalle, request.nota()), usuario);
+        return mapear(equipo);
+    }
+
+    // ------------------------------------------------------------------
+    // Acciones sobre unidades individuales (POR_UNIDAD)
     // ------------------------------------------------------------------
 
     public EquipoResponse cambiarEstado(Long id, EquipoAccionDto.CambioEstadoRequest request, Usuario usuario) {
@@ -158,48 +242,30 @@ public class EquipoService {
         if (nuevo == null) {
             throw new RuntimeException("Indicá el nuevo estado");
         }
+        EquipoUnidad unidad = obtenerUnidadRequerida(equipo, request.unidadId(), "el estado");
 
-        if (request.unidadId() != null) {
-            EquipoUnidad unidad = obtenerUnidad(equipo, request.unidadId());
-            EquipoEstado anterior = unidad.getEstado();
-            unidad.setEstado(nuevo);
-            equipoRepository.save(equipo);
-            registrar(equipo, unidad.getNumero(), EquipoMovimientoTipo.CAMBIO_ESTADO,
-                    conNota(etiqueta(anterior) + " → " + etiqueta(nuevo), request.nota()), usuario);
-        } else {
-            exigirEquipoPorCantidad(equipo, "el estado");
-            EquipoEstado anterior = equipo.getEstado();
-            equipo.setEstado(nuevo);
-            equipoRepository.save(equipo);
-            registrar(equipo, null, EquipoMovimientoTipo.CAMBIO_ESTADO,
-                    conNota(etiqueta(anterior) + " → " + etiqueta(nuevo), request.nota()), usuario);
-        }
+        EquipoEstado anterior = unidad.getEstado();
+        unidad.setEstado(nuevo);
+        equipoRepository.save(equipo);
+        registrar(equipo, unidad.getNumero(), EquipoMovimientoTipo.CAMBIO_ESTADO,
+                conNota(etiqueta(anterior) + " → " + etiqueta(nuevo), request.nota()), usuario);
         return mapear(equipo);
     }
 
     public EquipoResponse cambiarUbicacion(Long id, EquipoAccionDto.CambioUbicacionRequest request, Usuario usuario) {
         exigirPermiso(usuario, "editar");
         Equipo equipo = obtenerEntidad(id);
-        UbicacionEquipo nueva = request.ubicacionId() != null ? obtenerUbicacion(request.ubicacionId()) : null;
-        if (nueva == null) {
+        if (request.ubicacionId() == null) {
             throw new RuntimeException("Indicá la nueva ubicación");
         }
+        UbicacionEquipo nueva = obtenerUbicacion(request.ubicacionId());
+        EquipoUnidad unidad = obtenerUnidadRequerida(equipo, request.unidadId(), "la ubicación");
 
-        if (request.unidadId() != null) {
-            EquipoUnidad unidad = obtenerUnidad(equipo, request.unidadId());
-            UbicacionEquipo anterior = unidad.getUbicacion();
-            unidad.setUbicacion(nueva);
-            equipoRepository.save(equipo);
-            registrar(equipo, unidad.getNumero(), EquipoMovimientoTipo.CAMBIO_UBICACION,
-                    conNota(nombreUbicacion(anterior) + " → " + nueva.getNombre(), request.nota()), usuario);
-        } else {
-            exigirEquipoPorCantidad(equipo, "la ubicación");
-            UbicacionEquipo anterior = equipo.getUbicacion();
-            equipo.setUbicacion(nueva);
-            equipoRepository.save(equipo);
-            registrar(equipo, null, EquipoMovimientoTipo.CAMBIO_UBICACION,
-                    conNota(nombreUbicacion(anterior) + " → " + nueva.getNombre(), request.nota()), usuario);
-        }
+        UbicacionEquipo anterior = unidad.getUbicacion();
+        unidad.setUbicacion(nueva);
+        equipoRepository.save(equipo);
+        registrar(equipo, unidad.getNumero(), EquipoMovimientoTipo.CAMBIO_UBICACION,
+                conNota(nombreUbicacion(anterior) + " → " + nueva.getNombre(), request.nota()), usuario);
         return mapear(equipo);
     }
 
@@ -221,6 +287,43 @@ public class EquipoService {
         }
         equipoRepository.save(equipo);
         registrar(equipo, unidadNumero, EquipoMovimientoTipo.OBSERVACION, texto, usuario);
+        return mapear(equipo);
+    }
+
+    public EquipoResponse agregarUnidades(Long id, EquipoAccionDto.AgregarUnidadesRequest request, Usuario usuario) {
+        exigirPermiso(usuario, "editar");
+        Equipo equipo = obtenerEntidad(id);
+        if (equipo.getSeguimiento() != EquipoSeguimiento.POR_UNIDAD) {
+            throw new RuntimeException(
+                    "Este equipo se gestiona por stock: usá \"Ajustar stock\" para sumar cantidad");
+        }
+        if (request.cantidad() == null || request.cantidad() < 1) {
+            throw new RuntimeException("Indicá cuántas unidades agregar (mínimo 1)");
+        }
+
+        EquipoEstado estado = parsearEstado(request.estado());
+        if (estado == null) estado = EquipoEstado.EN_DEPOSITO;
+        UbicacionEquipo ubicacion = request.ubicacionId() != null
+                ? obtenerUbicacion(request.ubicacionId())
+                : null;
+
+        int siguienteNumero = equipo.getUnidades().stream()
+                .mapToInt(EquipoUnidad::getNumero)
+                .max()
+                .orElse(0) + 1;
+        for (int i = 0; i < request.cantidad(); i++) {
+            EquipoUnidad unidad = new EquipoUnidad();
+            unidad.setNumero(siguienteNumero + i);
+            unidad.setEstado(estado);
+            unidad.setUbicacion(ubicacion);
+            equipo.getUnidades().add(unidad);
+        }
+
+        equipoRepository.save(equipo);
+        registrar(equipo, null, EquipoMovimientoTipo.ALTA,
+                conNota("Se agregaron " + request.cantidad() + " unidades en "
+                        + nombreUbicacion(ubicacion) + " (" + etiqueta(estado) + ")", request.nota()),
+                usuario);
         return mapear(equipo);
     }
 
@@ -265,13 +368,6 @@ public class EquipoService {
             }
         }
 
-        if (equipo.getSeguimiento() == EquipoSeguimiento.POR_CANTIDAD) {
-            if (request.cantidad() == null || request.cantidad() < 0) {
-                throw new RuntimeException("Indicá una cantidad válida (0 o más)");
-            }
-            equipo.setCantidad(request.cantidad());
-        }
-
         equipo.setNombre(request.nombre().trim());
         equipo.setCodigoInterno(vacioANull(request.codigoInterno()));
         equipo.setCategoria(categoria);
@@ -281,14 +377,25 @@ public class EquipoService {
         equipo.setModelo(vacioANull(request.modelo()));
         equipo.setNumeroSerie(vacioANull(request.numeroSerie()));
         equipo.setUnidadMedida(vacioANull(request.unidadMedida()));
-        EquipoEstado estado = parsearEstado(request.estado());
-        if (estado != null) {
-            equipo.setEstado(estado);
-        }
-        equipo.setUbicacion(request.ubicacionId() != null ? obtenerUbicacion(request.ubicacionId()) : null);
         equipo.setFechaCompra(request.fechaCompra());
         equipo.setFechaVencimiento(request.fechaVencimiento());
         equipo.setObservaciones(vacioANull(request.observaciones()));
+    }
+
+    // Suma cantidad a la línea (ubicación, estado); la crea si no existe.
+    private void sumarALinea(Equipo equipo, UbicacionEquipo ubicacion, EquipoEstado estado, int cantidad) {
+        EquipoStock destino = equipo.getStock().stream()
+                .filter(l -> mismaUbicacion(l.getUbicacion(), ubicacion) && l.getEstado() == estado)
+                .findFirst()
+                .orElse(null);
+        if (destino == null) {
+            destino = new EquipoStock();
+            destino.setUbicacion(ubicacion);
+            destino.setEstado(estado);
+            destino.setCantidad(0);
+            equipo.getStock().add(destino);
+        }
+        destino.setCantidad(destino.getCantidad() + cantidad);
     }
 
     private void registrar(Equipo equipo, Integer unidadNumero, EquipoMovimientoTipo tipo,
@@ -307,6 +414,25 @@ public class EquipoService {
                 .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
     }
 
+    private Equipo obtenerPorCantidad(Long id) {
+        Equipo equipo = obtenerEntidad(id);
+        if (equipo.getSeguimiento() != EquipoSeguimiento.POR_CANTIDAD) {
+            throw new RuntimeException(
+                    "Este equipo se gestiona por unidades individuales, no por stock");
+        }
+        return equipo;
+    }
+
+    private EquipoStock obtenerLinea(Equipo equipo, Long stockId) {
+        if (stockId == null) {
+            throw new RuntimeException("Indicá desde qué línea de stock operar");
+        }
+        return equipo.getStock().stream()
+                .filter(l -> l.getId() != null && l.getId().equals(stockId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Línea de stock no encontrada en este equipo"));
+    }
+
     private EquipoUnidad obtenerUnidad(Equipo equipo, Long unidadId) {
         return equipo.getUnidades().stream()
                 .filter(u -> u.getId().equals(unidadId))
@@ -314,16 +440,20 @@ public class EquipoService {
                 .orElseThrow(() -> new RuntimeException("Unidad no encontrada en este equipo"));
     }
 
+    private EquipoUnidad obtenerUnidadRequerida(Equipo equipo, Long unidadId, String que) {
+        if (unidadId == null) {
+            if (equipo.getSeguimiento() == EquipoSeguimiento.POR_CANTIDAD) {
+                throw new RuntimeException(
+                        "Este equipo se gestiona por stock: usá \"Mover stock\" para cambiar " + que);
+            }
+            throw new RuntimeException("Indicá a qué unidad cambiarle " + que);
+        }
+        return obtenerUnidad(equipo, unidadId);
+    }
+
     private UbicacionEquipo obtenerUbicacion(Long id) {
         return ubicacionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ubicación no encontrada"));
-    }
-
-    private void exigirEquipoPorCantidad(Equipo equipo, String que) {
-        if (equipo.getSeguimiento() == EquipoSeguimiento.POR_UNIDAD) {
-            throw new RuntimeException(
-                    "Este equipo se gestiona por unidades: indicá a qué unidad cambiarle " + que);
-        }
     }
 
     private EquipoSeguimiento parsearSeguimiento(String valor) {
@@ -362,18 +492,27 @@ public class EquipoService {
                 .filter(EquipoUnidad::getActivo)
                 .toList();
 
+        Map<String, Integer> cantidadPorEstado = new LinkedHashMap<>();
         Integer cantidad;
-        Map<String, Integer> unidadesPorEstado = null;
+        List<EquipoResponse.StockResponse> stock = new ArrayList<>();
         if (porUnidad) {
             cantidad = (int) unidadesActivas.stream()
                     .filter(u -> u.getEstado() != EquipoEstado.DADO_DE_BAJA)
                     .count();
-            unidadesPorEstado = new LinkedHashMap<>();
             for (EquipoUnidad u : unidadesActivas) {
-                unidadesPorEstado.merge(u.getEstado().name(), 1, Integer::sum);
+                cantidadPorEstado.merge(u.getEstado().name(), 1, Integer::sum);
             }
         } else {
-            cantidad = e.getCantidad();
+            cantidad = e.getStock().stream().mapToInt(EquipoStock::getCantidad).sum();
+            for (EquipoStock linea : e.getStock()) {
+                cantidadPorEstado.merge(linea.getEstado().name(), linea.getCantidad(), Integer::sum);
+                stock.add(new EquipoResponse.StockResponse(
+                        linea.getId(),
+                        linea.getUbicacion() != null ? linea.getUbicacion().getId() : null,
+                        linea.getUbicacion() != null ? linea.getUbicacion().getNombre() : null,
+                        linea.getEstado().name(),
+                        linea.getCantidad()));
+            }
         }
 
         // Peor caso entre el vencimiento del equipo y el de sus unidades,
@@ -417,7 +556,8 @@ public class EquipoService {
                 e.getFechaVencimiento(),
                 estadoVencimiento,
                 e.getObservaciones(),
-                unidadesPorEstado,
+                cantidadPorEstado,
+                stock,
                 unidades,
                 e.getCreatedAt()
         );
@@ -455,7 +595,7 @@ public class EquipoService {
     private boolean mismaUbicacion(UbicacionEquipo a, UbicacionEquipo b) {
         Long idA = a != null ? a.getId() : null;
         Long idB = b != null ? b.getId() : null;
-        return idA == null ? idB == null : idA.equals(idB);
+        return Objects.equals(idA, idB);
     }
 
     private String conNota(String detalle, String nota) {

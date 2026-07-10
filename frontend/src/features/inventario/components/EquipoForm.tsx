@@ -68,7 +68,7 @@ const EquipoForm = ({ onGuardar, loading, error, inicial, textoBoton }: Props) =
       setErrorLocal('Completá el nombre del equipo y elegí una categoría.')
       return
     }
-    if (!porUnidad) {
+    if (!porUnidad && !esEdicion) {
       const cantidadNum = Number(cantidad)
       if (cantidad === '' || !Number.isInteger(cantidadNum) || cantidadNum < 0) {
         setErrorLocal('Indicá una cantidad válida (0 o más).')
@@ -93,11 +93,11 @@ const EquipoForm = ({ onGuardar, loading, error, inicial, textoBoton }: Props) =
       modelo: modelo.trim() || undefined,
       numeroSerie: numeroSerie.trim() || undefined,
       seguimiento,
-      cantidad: porUnidad ? undefined : Number(cantidad),
+      cantidad: !porUnidad && !esEdicion ? Number(cantidad) : undefined,
       cantidadUnidades: porUnidad && !esEdicion ? Number(cantidadUnidades) : undefined,
       unidadMedida: unidadMedida.trim() || undefined,
-      estado,
-      ubicacionId: ubicacionId === '' ? null : ubicacionId,
+      estado: esEdicion ? undefined : estado,
+      ubicacionId: esEdicion ? undefined : ubicacionId === '' ? null : ubicacionId,
       fechaCompra: fechaCompra || null,
       fechaVencimiento: fechaVencimiento || null,
       observaciones: observaciones.trim() || undefined,
@@ -207,9 +207,26 @@ const EquipoForm = ({ onGuardar, loading, error, inicial, textoBoton }: Props) =
         </Typography>
       </Box>
 
-      <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {porUnidad ? (
-          !esEdicion && (
+      {esEdicion ? (
+        <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {!porUnidad && (
+            <TextField
+              label="Unidad de medida (opcional)"
+              placeholder="unidades, tramos, metros, pares…"
+              value={unidadMedida}
+              onChange={(e) => setUnidadMedida(e.target.value)}
+              fullWidth
+            />
+          )}
+          <Typography variant="caption" color="text.secondary" className="self-center">
+            {porUnidad
+              ? 'Las unidades (estados, ubicaciones, series) se gestionan desde el detalle del equipo.'
+              : 'El stock (cantidades, ubicaciones y estados) se gestiona desde el detalle del equipo.'}
+          </Typography>
+        </Box>
+      ) : (
+        <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {porUnidad ? (
             <TextField
               label="Cantidad de unidades a dar de alta"
               type="number"
@@ -220,59 +237,56 @@ const EquipoForm = ({ onGuardar, loading, error, inicial, textoBoton }: Props) =
               slotProps={{ htmlInput: { min: 1 } }}
               helperText="Se numeran automáticamente (N°1, N°2, …)"
             />
-          )
-        ) : (
-          <>
-            <TextField
-              label="Cantidad"
-              type="number"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
-              required
-              fullWidth
-              slotProps={{ htmlInput: { min: 0 } }}
-            />
-            <TextField
-              label="Unidad de medida (opcional)"
-              placeholder="unidades, tramos, metros, pares…"
-              value={unidadMedida}
-              onChange={(e) => setUnidadMedida(e.target.value)}
-              fullWidth
-            />
-          </>
-        )}
-        {(!porUnidad || !esEdicion) && (
-          <>
-            <TextField
-              select
-              label={porUnidad ? 'Estado inicial de las unidades' : 'Estado'}
-              value={estado}
-              onChange={(e) => setEstado(e.target.value as EquipoEstado)}
-              fullWidth
-            >
-              {ESTADOS_EQUIPO.filter((e) => e !== 'DADO_DE_BAJA').map((valor) => (
-                <MenuItem key={valor} value={valor}>
-                  {ESTILO_EQUIPO_ESTADO[valor].label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label={porUnidad ? 'Ubicación inicial de las unidades' : 'Ubicación'}
-              value={ubicacionId}
-              onChange={(e) => setUbicacionId(e.target.value === '' ? '' : Number(e.target.value))}
-              fullWidth
-            >
-              <MenuItem value="">— Sin ubicación —</MenuItem>
-              {ubicaciones.map((u) => (
-                <MenuItem key={u.id} value={u.id}>
-                  {u.nombre}
-                </MenuItem>
-              ))}
-            </TextField>
-          </>
-        )}
-      </Box>
+          ) : (
+            <>
+              <TextField
+                label="Cantidad inicial"
+                type="number"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                required
+                fullWidth
+                slotProps={{ htmlInput: { min: 0 } }}
+                helperText="Después se puede repartir entre ubicaciones desde el detalle"
+              />
+              <TextField
+                label="Unidad de medida (opcional)"
+                placeholder="unidades, tramos, metros, pares…"
+                value={unidadMedida}
+                onChange={(e) => setUnidadMedida(e.target.value)}
+                fullWidth
+              />
+            </>
+          )}
+          <TextField
+            select
+            label={porUnidad ? 'Estado inicial de las unidades' : 'Estado inicial'}
+            value={estado}
+            onChange={(e) => setEstado(e.target.value as EquipoEstado)}
+            fullWidth
+          >
+            {ESTADOS_EQUIPO.filter((e) => e !== 'DADO_DE_BAJA').map((valor) => (
+              <MenuItem key={valor} value={valor}>
+                {ESTILO_EQUIPO_ESTADO[valor].label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label={porUnidad ? 'Ubicación inicial de las unidades' : 'Ubicación inicial'}
+            value={ubicacionId}
+            onChange={(e) => setUbicacionId(e.target.value === '' ? '' : Number(e.target.value))}
+            fullWidth
+          >
+            <MenuItem value="">— Sin ubicación —</MenuItem>
+            {ubicaciones.map((u) => (
+              <MenuItem key={u.id} value={u.id}>
+                {u.nombre}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
+      )}
 
       {/* Secciones opcionales: solo se abren si hacen falta */}
       <Box className="flex flex-col">

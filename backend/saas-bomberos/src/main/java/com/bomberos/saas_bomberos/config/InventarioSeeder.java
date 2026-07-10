@@ -64,8 +64,14 @@ public class InventarioSeeder implements CommandLineRunner {
         }
     }
 
+    // Si ya existe alguna fila con ese nombre (activa o eliminada por el
+    // usuario) no se crea nada: el seeder respeta lo que el usuario hizo.
     private CategoriaEquipo obtenerOCrearCategoria(String nombre) {
-        return categoriaRepository.findByNombreIgnoreCaseAndPadreIsNull(nombre)
+        List<CategoriaEquipo> existentes = categoriaRepository.findByNombreIgnoreCaseAndPadreIsNull(nombre);
+        return existentes.stream()
+                .filter(CategoriaEquipo::getActivo)
+                .findFirst()
+                .or(() -> existentes.stream().findFirst())
                 .orElseGet(() -> {
                     CategoriaEquipo categoria = new CategoriaEquipo();
                     categoria.setNombre(nombre);

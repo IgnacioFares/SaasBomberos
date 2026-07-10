@@ -31,12 +31,23 @@ public record EquipoResponse(
         // POR_UNIDAD se agrega el peor caso entre equipo y unidades.
         String estadoVencimiento,
         String observaciones,
-        // Solo POR_UNIDAD: conteo por estado para resumir en la tabla
-        // (ej: {EN_SERVICIO: 3, EN_REPARACION: 1}).
-        Map<String, Integer> unidadesPorEstado,
+        // Conteo por estado para resumir en la tabla, en ambos modos:
+        // suma de líneas de stock (POR_CANTIDAD) o de unidades
+        // (POR_UNIDAD). Ej: {EN_SERVICIO: 3, EN_DEPOSITO: 7}.
+        Map<String, Integer> cantidadPorEstado,
+        // Desglose por ubicación/estado (solo POR_CANTIDAD).
+        List<StockResponse> stock,
         List<UnidadResponse> unidades,
         LocalDateTime createdAt
 ) {
+    public record StockResponse(
+            Long id,
+            Long ubicacionId,
+            String ubicacionNombre,
+            String estado,
+            Integer cantidad
+    ) {}
+
     public record UnidadResponse(
             Long id,
             Integer numero,

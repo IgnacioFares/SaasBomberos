@@ -50,15 +50,16 @@ public class Equipo {
     @Column(nullable = false)
     private EquipoSeguimiento seguimiento = EquipoSeguimiento.POR_CANTIDAD;
 
-    // Solo para POR_CANTIDAD; en POR_UNIDAD la cantidad se deriva de
-    // las unidades activas.
+    // Legado: la cantidad de POR_CANTIDAD vive ahora en las líneas de
+    // stock; este campo solo se usa para migrar datos viejos.
     private Integer cantidad;
 
     @Column(name = "unidad_medida")
     private String unidadMedida;
 
-    // Estado/ubicación del lote (POR_CANTIDAD). En POR_UNIDAD cada
-    // unidad tiene los suyos.
+    // Estado/ubicación por defecto al dar de alta (los POR_UNIDAD los
+    // copian a sus unidades; los POR_CANTIDAD a su línea de stock
+    // inicial). El estado real vive en unidades/stock.
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EquipoEstado estado = EquipoEstado.EN_DEPOSITO;
@@ -66,6 +67,11 @@ public class Equipo {
     @ManyToOne
     @JoinColumn(name = "ubicacion_id")
     private UbicacionEquipo ubicacion;
+
+    // Stock desglosado por ubicación y estado (solo POR_CANTIDAD).
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "equipo_id")
+    private List<EquipoStock> stock = new ArrayList<>();
 
     @Column(name = "fecha_compra")
     private LocalDate fechaCompra;

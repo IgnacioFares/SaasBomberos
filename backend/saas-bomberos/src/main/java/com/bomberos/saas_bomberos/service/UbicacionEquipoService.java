@@ -50,12 +50,12 @@ public class UbicacionEquipoService {
         if (request.nombre() == null || request.nombre().isBlank()) {
             throw new RuntimeException("El nombre de la ubicación es obligatorio");
         }
-        ubicacionRepository.findByNombreIgnoreCase(request.nombre().trim())
+        boolean duplicada = ubicacionRepository.findByNombreIgnoreCase(request.nombre().trim()).stream()
                 .filter(existente -> !existente.getId().equals(idActual))
-                .filter(UbicacionEquipo::getActivo)
-                .ifPresent(existente -> {
-                    throw new RuntimeException("Ya existe una ubicación con ese nombre");
-                });
+                .anyMatch(UbicacionEquipo::getActivo);
+        if (duplicada) {
+            throw new RuntimeException("Ya existe una ubicación con ese nombre");
+        }
     }
 
     private UbicacionEquipo obtenerEntidad(Long id) {

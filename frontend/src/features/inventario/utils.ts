@@ -1,4 +1,8 @@
-import type { Equipo, EquipoEstado } from './types'
+import type { AccionEquipo, Equipo, EquipoEstado, EquipoUnidad } from './types'
+
+// Unidad sobre la que opera una acción, si la acción es de unidad.
+export const unidadDeAccion = (accion: AccionEquipo | null): EquipoUnidad | undefined =>
+  accion && 'unidad' in accion ? accion.unidad : undefined
 
 export interface FiltrosEquipos {
   busqueda: string
@@ -36,18 +40,14 @@ export const filtrarEquipos = (equipos: Equipo[], filtros: FiltrosEquipos): Equi
     if (filtros.categoriaId !== '' && equipo.categoriaId !== filtros.categoriaId) return false
 
     if (filtros.estado !== '') {
-      const coincide =
-        equipo.seguimiento === 'POR_UNIDAD'
-          ? (equipo.unidadesPorEstado?.[filtros.estado] ?? 0) > 0
-          : equipo.estado === filtros.estado
-      if (!coincide) return false
+      if ((equipo.cantidadPorEstado[filtros.estado] ?? 0) <= 0) return false
     }
 
     if (filtros.ubicacionId !== '') {
       const coincide =
         equipo.seguimiento === 'POR_UNIDAD'
           ? equipo.unidades.some((u) => u.ubicacionId === filtros.ubicacionId)
-          : equipo.ubicacionId === filtros.ubicacionId
+          : equipo.stock.some((l) => l.ubicacionId === filtros.ubicacionId)
       if (!coincide) return false
     }
 
@@ -57,11 +57,11 @@ export const filtrarEquipos = (equipos: Equipo[], filtros: FiltrosEquipos): Equi
   })
 }
 
-// Resumen "3 en servicio · 1 en reparación" para equipos POR_UNIDAD.
-export const resumenUnidades = (
-  equipo: Equipo,
-  etiquetas: Record<EquipoEstado, { label: string }>
-): string =>
-  Object.entries(equipo.unidadesPorEstado ?? {})
-    .map(([estado, cantidad]) => `${cantidad} ${etiquetas[estado as EquipoEstado].label.toLowerCase()}`)
-    .join(' · ')
+// Ubicaciones únicas donde hay stock o unidades de un equipo.
+export const ubicacionesDeEquipo = (equipo: Equipo): string[] => {
+  const nombres =
+    equipo.seguimiento === 'POR_UNIDAD'
+      ? equipo.unidades.map((u) => u.ubicacionNombre)
+      : equipo.stock.map((l) => l.ubicacionNombre)
+  return [...new Set(nombres.filter((n): n is string => Boolean(n)))]
+}

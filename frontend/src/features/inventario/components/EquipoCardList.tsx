@@ -5,6 +5,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
 import type { Equipo, EquipoEstado } from '../types'
 import { ESTILO_EQUIPO_ESTADO, ESTILO_VENCIMIENTO } from '../constants'
+import { ubicacionesDeEquipo } from '../utils'
 
 interface Props {
   equipos: Equipo[]
@@ -26,10 +27,7 @@ const EquipoCardList = ({ equipos }: Props) => {
   return (
     <Box className="flex flex-col gap-3">
       {equipos.map((equipo) => {
-        const ubicaciones =
-          equipo.seguimiento === 'POR_UNIDAD'
-            ? [...new Set(equipo.unidades.map((u) => u.ubicacionNombre).filter(Boolean))].join(', ')
-            : equipo.ubicacionNombre
+        const ubicaciones = ubicacionesDeEquipo(equipo).join(', ')
         const estiloVencimiento = ESTILO_VENCIMIENTO[equipo.estadoVencimiento]
 
         return (
@@ -53,30 +51,18 @@ const EquipoCardList = ({ equipos }: Props) => {
               </Box>
 
               <Box className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                {equipo.seguimiento === 'POR_UNIDAD' ? (
-                  Object.entries(equipo.unidadesPorEstado ?? {}).map(([estado, cantidad]) => {
-                    const estilo = ESTILO_EQUIPO_ESTADO[estado as EquipoEstado]
-                    return (
-                      <Chip
-                        key={estado}
-                        label={`${cantidad} ${estilo.label.toLowerCase()}`}
-                        size="small"
-                        sx={{ height: 22, bgcolor: estilo.bg, color: estilo.color, fontWeight: 700 }}
-                      />
-                    )
-                  })
-                ) : (
-                  <Chip
-                    label={ESTILO_EQUIPO_ESTADO[equipo.estado].label}
-                    size="small"
-                    sx={{
-                      height: 22,
-                      bgcolor: ESTILO_EQUIPO_ESTADO[equipo.estado].bg,
-                      color: ESTILO_EQUIPO_ESTADO[equipo.estado].color,
-                      fontWeight: 700,
-                    }}
-                  />
-                )}
+                {Object.entries(equipo.cantidadPorEstado).map(([estado, cantidad]) => {
+                  const estilo = ESTILO_EQUIPO_ESTADO[estado as EquipoEstado]
+                  const soloUnEstado = Object.keys(equipo.cantidadPorEstado).length === 1
+                  return (
+                    <Chip
+                      key={estado}
+                      label={soloUnEstado ? estilo.label : `${cantidad} ${estilo.label.toLowerCase()}`}
+                      size="small"
+                      sx={{ height: 22, bgcolor: estilo.bg, color: estilo.color, fontWeight: 700 }}
+                    />
+                  )
+                })}
                 {equipo.estadoVencimiento !== 'SIN_VENCIMIENTO' && (
                   <Chip
                     label={estiloVencimiento.label}

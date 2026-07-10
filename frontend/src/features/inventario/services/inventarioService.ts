@@ -1,11 +1,14 @@
 import api from '../../../services'
 import type {
+  AgregarUnidadesRequest,
+  AjustarStockRequest,
   CambioEstadoRequest,
   CambioUbicacionRequest,
   CategoriaEquipo,
   Equipo,
   EquipoMovimiento,
   EquipoRequest,
+  MoverStockRequest,
   ObservacionRequest,
   UbicacionEquipo,
   UnidadUpdateRequest,
@@ -94,6 +97,21 @@ export const cambiarUbicacion = async (id: number, data: CambioUbicacionRequest)
 
 export const agregarObservacion = async (id: number, data: ObservacionRequest): Promise<Equipo> => {
   const response = await api.post(`/api/inventario/equipos/${id}/observaciones`, data)
+  return response.data
+}
+
+export const moverStock = async (id: number, data: MoverStockRequest): Promise<Equipo> => {
+  const response = await api.post(`/api/inventario/equipos/${id}/stock/mover`, data)
+  return response.data
+}
+
+export const ajustarStock = async (id: number, data: AjustarStockRequest): Promise<Equipo> => {
+  const response = await api.post(`/api/inventario/equipos/${id}/stock/ajustar`, data)
+  return response.data
+}
+
+export const agregarUnidades = async (id: number, data: AgregarUnidadesRequest): Promise<Equipo> => {
+  const response = await api.post(`/api/inventario/equipos/${id}/unidades`, data)
   return response.data
 }
 

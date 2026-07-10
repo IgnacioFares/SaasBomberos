@@ -15,4 +15,28 @@ public class EquipoAccionDto {
 
     // Edición de los datos propios de una unidad individual.
     public record UnidadUpdateRequest(String numeroSerie, LocalDate fechaVencimiento) {}
+
+    // Alta de unidades adicionales en un equipo POR_UNIDAD (ej: se
+    // compraron 2 cascos más). Se numeran a continuación de la última.
+    public record AgregarUnidadesRequest(Integer cantidad, String estado, Long ubicacionId, String nota) {}
+
+    // Mueve N unidades de una línea de stock hacia otra ubicación y/o
+    // estado (ej: 3 hachas del Depósito al Móvil 1, en servicio).
+    public record MoverStockRequest(
+            Long stockId,
+            Integer cantidad,
+            Long ubicacionDestinoId,
+            String estadoDestino,
+            String nota
+    ) {}
+
+    // Fija la cantidad absoluta de una línea (stockId) o crea/suma una
+    // línea nueva (ubicacionId + estado). Cantidad 0 elimina la línea.
+    public record AjustarStockRequest(
+            Long stockId,
+            Long ubicacionId,
+            String estado,
+            Integer cantidad,
+            String nota
+    ) {}
 }

@@ -89,7 +89,9 @@ const PanoramaInventario = ({ equipos }: Props) => {
           }
         }
       } else {
-        sumar(equipo.estado, equipo.categoriaNombre, equipo.ubicacionNombre ?? null, equipo.cantidad ?? 0)
+        for (const linea of equipo.stock) {
+          sumar(linea.estado, equipo.categoriaNombre, linea.ubicacionNombre ?? null, linea.cantidad)
+        }
       }
       if (
         equipo.fechaVencimiento &&

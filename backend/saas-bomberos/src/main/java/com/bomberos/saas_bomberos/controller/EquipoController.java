@@ -60,6 +60,26 @@ public class EquipoController {
         return ResponseEntity.noContent().build();
     }
 
+    // Stock por ubicación (equipos POR_CANTIDAD): mover N entre
+    // ubicaciones/estados, o ajustar/agregar una línea.
+    @PostMapping("/{id}/stock/mover")
+    public ResponseEntity<EquipoResponse> moverStock(
+            @PathVariable Long id,
+            @RequestBody EquipoAccionDto.MoverStockRequest request,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        return ResponseEntity.ok(equipoService.moverStock(id, request, usuario));
+    }
+
+    @PostMapping("/{id}/stock/ajustar")
+    public ResponseEntity<EquipoResponse> ajustarStock(
+            @PathVariable Long id,
+            @RequestBody EquipoAccionDto.AjustarStockRequest request,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        return ResponseEntity.ok(equipoService.ajustarStock(id, request, usuario));
+    }
+
     @PostMapping("/{id}/estado")
     public ResponseEntity<EquipoResponse> cambiarEstado(
             @PathVariable Long id,
@@ -85,6 +105,15 @@ public class EquipoController {
             @AuthenticationPrincipal Usuario usuario
     ) {
         return ResponseEntity.ok(equipoService.agregarObservacion(id, request, usuario));
+    }
+
+    @PostMapping("/{id}/unidades")
+    public ResponseEntity<EquipoResponse> agregarUnidades(
+            @PathVariable Long id,
+            @RequestBody EquipoAccionDto.AgregarUnidadesRequest request,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        return ResponseEntity.ok(equipoService.agregarUnidades(id, request, usuario));
     }
 
     @PutMapping("/{id}/unidades/{unidadId}")

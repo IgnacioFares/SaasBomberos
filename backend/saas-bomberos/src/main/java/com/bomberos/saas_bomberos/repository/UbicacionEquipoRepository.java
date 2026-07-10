@@ -4,11 +4,12 @@ import com.bomberos.saas_bomberos.entity.UbicacionEquipo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface UbicacionEquipoRepository extends JpaRepository<UbicacionEquipo, Long> {
     List<UbicacionEquipo> findByActivoTrueOrderByNombreAsc();
 
-    Optional<UbicacionEquipo> findByNombreIgnoreCase(String nombre);
+    // Lista (no Optional): puede haber varias filas con el mismo nombre
+    // si el usuario eliminó una ubicación base y creó otra igual.
+    List<UbicacionEquipo> findByNombreIgnoreCase(String nombre);
 }

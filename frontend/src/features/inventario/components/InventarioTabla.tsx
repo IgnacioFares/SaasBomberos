@@ -7,6 +7,7 @@ import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { esES } from '@mui/x-data-grid/locales'
 import type { Equipo, EquipoEstado } from '../types'
 import { ESTILO_EQUIPO_ESTADO, ESTILO_VENCIMIENTO, formatearFecha } from '../constants'
+import { ubicacionesDeEquipo } from '../utils'
 
 interface Props {
   equipos: Equipo[]
@@ -80,26 +81,27 @@ const InventarioTabla = ({ equipos, loading }: Props) => {
       flex: 1.1,
       minWidth: 170,
       sortable: false,
-      renderCell: ({ row }) =>
-        row.seguimiento === 'POR_UNIDAD' ? (
+      renderCell: ({ row }) => {
+        const entradas = Object.entries(row.cantidadPorEstado)
+        return (
           <Box className="flex h-full flex-wrap items-center gap-1 py-1">
-            {Object.entries(row.unidadesPorEstado ?? {}).map(([estado, cantidad]) =>
-              chipEstado(estado as EquipoEstado, cantidad)
+            {entradas.length === 0 ? (
+              <span className="text-slate-400">Sin stock</span>
+            ) : entradas.length === 1 ? (
+              chipEstado(entradas[0][0] as EquipoEstado)
+            ) : (
+              entradas.map(([estado, cantidad]) => chipEstado(estado as EquipoEstado, cantidad))
             )}
           </Box>
-        ) : (
-          <Box className="flex h-full items-center">{chipEstado(row.estado)}</Box>
-        ),
+        )
+      },
     },
     {
       field: 'ubicacionNombre',
       headerName: 'Ubicación',
       flex: 1,
       minWidth: 150,
-      valueGetter: (_, row) =>
-        row.seguimiento === 'POR_UNIDAD'
-          ? [...new Set(row.unidades.map((u) => u.ubicacionNombre).filter(Boolean))].join(', ') || '—'
-          : (row.ubicacionNombre ?? '—'),
+      valueGetter: (_, row) => ubicacionesDeEquipo(row).join(', ') || '—',
     },
     {
       field: 'marca',
