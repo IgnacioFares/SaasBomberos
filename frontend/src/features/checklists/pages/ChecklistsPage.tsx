@@ -24,6 +24,7 @@ import DrawRoundedIcon from '@mui/icons-material/DrawRounded'
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import useChecklistTemplates from '../hooks/useChecklistTemplates'
 import useChecklistRegistros from '../hooks/useChecklistRegistros'
+import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
 import ChecklistCard from '../components/ChecklistCard'
 import RegistroCard from '../components/RegistroCard'
 import type { ChecklistRegistroEstado } from '../types'
@@ -50,6 +51,8 @@ const ChecklistsPage = () => {
 
   const { templates, loading: cargandoTemplates, error: errorTemplates, eliminar } = useChecklistTemplates()
   const { registros, loading: cargandoRegistros, error: errorRegistros } = useChecklistRegistros()
+  const { tienePermiso } = usePermisos()
+  const puedeCrear = tienePermiso(PERMISOS.CREAR_CHECKLISTS)
 
   const [tab, setTab] = useState<TabActiva>(estadoNav.tab ?? 'realizar')
   const [mensajeExito, setMensajeExito] = useState<string | null>(estadoNav.mensaje ?? null)
@@ -97,16 +100,18 @@ const ChecklistsPage = () => {
             Control diario del equipamiento de cada movilidad.
           </Typography>
         </Box>
-        <Button
-          component={RouterLink}
-          to="/checklists/nuevo"
-          variant="contained"
-          color="primary"
-          startIcon={<AddRoundedIcon />}
-          className="self-start! sm:self-auto!"
-        >
-          Nuevo checklist
-        </Button>
+        {puedeCrear && (
+          <Button
+            component={RouterLink}
+            to="/checklists/nuevo"
+            variant="contained"
+            color="primary"
+            startIcon={<AddRoundedIcon />}
+            className="self-start! sm:self-auto!"
+          >
+            Nuevo checklist
+          </Button>
+        )}
       </Box>
 
       <Tabs
@@ -159,7 +164,12 @@ const ChecklistsPage = () => {
               ) : (
                 <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {templates.map((template) => (
-                    <ChecklistCard key={template.id} template={template} onEliminar={setEliminarId} />
+                    <ChecklistCard
+                      key={template.id}
+                      template={template}
+                      onEliminar={setEliminarId}
+                      puedeGestionar={puedeCrear}
+                    />
                   ))}
                 </Box>
               ))}

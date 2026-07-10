@@ -6,17 +6,25 @@ import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
+import LocalPhoneRoundedIcon from '@mui/icons-material/LocalPhoneRounded'
+import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded'
+import BloodtypeRoundedIcon from '@mui/icons-material/BloodtypeRounded'
+import HealingRoundedIcon from '@mui/icons-material/HealingRounded'
 import type { Bombero } from '../../../types'
 
 interface Props {
   bomberos: Bombero[]
   onEliminar: (id: number) => void
+  // Click en la tarjeta → ficha completa del bombero.
+  onVer: (bombero: Bombero) => void
+  // Sin el permiso "gestionar_personal" se oculta el botón de eliminar.
+  puedeGestionar: boolean
 }
 
 const iniciales = (nombre: string, apellido: string) =>
   `${nombre?.[0] ?? ''}${apellido?.[0] ?? ''}`.toUpperCase()
 
-const BomberoTable = ({ bomberos, onEliminar }: Props) => {
+const BomberoTable = ({ bomberos, onEliminar, onVer, puedeGestionar }: Props) => {
   if (bomberos.length === 0) {
     return (
       <Box className="flex flex-col items-center gap-2 py-12 text-center">
@@ -34,7 +42,8 @@ const BomberoTable = ({ bomberos, onEliminar }: Props) => {
         <Paper
           key={bombero.id}
           elevation={0}
-          className="rounded-2xl! flex flex-col gap-3 border border-slate-200 p-5"
+          onClick={() => onVer(bombero)}
+          className="rounded-2xl! flex cursor-pointer flex-col gap-3 border border-slate-200 p-5 transition-shadow hover:shadow-md"
         >
           <Box className="flex items-start justify-between gap-2">
             <Box className="flex items-center gap-3">
@@ -53,15 +62,21 @@ const BomberoTable = ({ bomberos, onEliminar }: Props) => {
                 </Box>
               </Box>
             </Box>
-            <Tooltip title="Eliminar">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => bombero.id && onEliminar(bombero.id)}
-              >
-                <DeleteOutlineRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            {puedeGestionar && (
+              <Tooltip title="Eliminar">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    // Que el borrar no abra la ficha de detalle.
+                    e.stopPropagation()
+                    if (bombero.id) onEliminar(bombero.id)
+                  }}
+                >
+                  <DeleteOutlineRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
 
           <Box className="flex flex-wrap items-center gap-2">
@@ -71,6 +86,14 @@ const BomberoTable = ({ bomberos, onEliminar }: Props) => {
                 label={bombero.rango}
                 size="small"
                 sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
+              />
+            )}
+            {bombero.grupoSanguineo && (
+              <Chip
+                icon={<BloodtypeRoundedIcon sx={{ color: '#B91C1C!important', fontSize: 16 }} />}
+                label={bombero.grupoSanguineo}
+                size="small"
+                sx={{ bgcolor: '#FEF2F2', color: '#B91C1C', fontWeight: 700 }}
               />
             )}
             <Chip
@@ -99,11 +122,34 @@ const BomberoTable = ({ bomberos, onEliminar }: Props) => {
                 <Typography variant="body2">{bombero.telefono}</Typography>
               </Box>
             )}
+            {bombero.telefonoEmergencia && (
+              <Box className="flex items-center gap-2">
+                <LocalPhoneRoundedIcon fontSize="small" sx={{ color: '#B45309' }} />
+                <Typography variant="body2">
+                  Emergencias: {bombero.telefonoEmergencia}
+                </Typography>
+              </Box>
+            )}
+            {bombero.obraSocial && (
+              <Box className="flex items-center gap-2">
+                <MedicalServicesRoundedIcon fontSize="small" sx={{ color: '#94A3B8' }} />
+                <Typography variant="body2">{bombero.obraSocial}</Typography>
+              </Box>
+            )}
+            {bombero.enfermedades && (
+              <Box className="flex items-center gap-2">
+                <HealingRoundedIcon fontSize="small" sx={{ color: '#94A3B8' }} />
+                <Typography variant="body2" className="truncate">
+                  {bombero.enfermedades}
+                </Typography>
+              </Box>
+            )}
             {bombero.fechaIngreso && (
               <Box className="flex items-center gap-2">
                 <CalendarMonthRoundedIcon fontSize="small" sx={{ color: '#94A3B8' }} />
                 <Typography variant="body2">
-                  Ingresó el {new Date(bombero.fechaIngreso).toLocaleDateString('es-AR')}
+                  {/* T00:00:00 evita el corrimiento de un día por UTC. */}
+                  Ingresó el {new Date(`${bombero.fechaIngreso}T00:00:00`).toLocaleDateString('es-AR')}
                 </Typography>
               </Box>
             )}

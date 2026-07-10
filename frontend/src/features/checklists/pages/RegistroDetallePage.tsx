@@ -25,6 +25,7 @@ import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import DrawRoundedIcon from '@mui/icons-material/DrawRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
 import useRegistroDetalle from '../hooks/useRegistroDetalle'
+import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
 import ResumenChips from '../components/ResumenChips'
 import { ESTILO_ITEM_ESTADO, ESTILO_REGISTRO_ESTADO, formatearDuracion, formatearFechaHora } from '../constants'
 import type { ResultadoResponse } from '../types'
@@ -32,6 +33,8 @@ import type { ResultadoResponse } from '../types'
 const RegistroDetallePage = () => {
   const { id } = useParams<{ id: string }>()
   const { registro, cargando, firmando, error, firmar } = useRegistroDetalle(id ? Number(id) : null)
+  const { tienePermiso } = usePermisos()
+  const puedeFirmar = tienePermiso(PERMISOS.FIRMAR_CHECKLISTS)
 
   const [confirmarAbierto, setConfirmarAbierto] = useState(false)
   const [firmaExitosa, setFirmaExitosa] = useState(false)
@@ -242,7 +245,13 @@ const RegistroDetallePage = () => {
         </Paper>
       )}
 
-      {registro.estado === 'PENDIENTE_FIRMA' && (
+      {registro.estado === 'PENDIENTE_FIRMA' && !puedeFirmar && (
+        <Alert severity="info" variant="outlined">
+          Este checklist está pendiente de firma. Solo el personal autorizado puede firmarlo.
+        </Alert>
+      )}
+
+      {registro.estado === 'PENDIENTE_FIRMA' && puedeFirmar && (
         <Paper
           elevation={3}
           className="rounded-2xl! flex items-center justify-between gap-3 p-3 sm:p-4"

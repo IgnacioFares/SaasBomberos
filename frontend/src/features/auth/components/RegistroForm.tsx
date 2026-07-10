@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material'
 import type { RegisterRequest } from '../types'
-import { RANGOS } from '../../bomberos/constants'
+import { GRUPOS_SANGUINEOS, RANGOS } from '../../bomberos/constants'
 
 interface Props {
   onRegistrar: (datos: RegisterRequest) => void
@@ -28,6 +28,10 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
       email: '',
       telefono: '',
       rango: '',
+      telefonoEmergencia: '',
+      obraSocial: '',
+      enfermedades: '',
+      grupoSanguineo: '',
     },
   })
 
@@ -130,6 +134,56 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
               </MenuItem>
             ))}
           </TextField>
+        </Box>
+      </Box>
+
+      <Divider />
+
+      <Box>
+        <Typography variant="subtitle2" className="mb-2! font-semibold!" color="text.secondary">
+          Datos médicos y de emergencia
+        </Typography>
+        <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <TextField
+            name="telefonoEmergencia"
+            label="Teléfono de emergencia"
+            placeholder="A quién llamar ante un accidente"
+            value={form.bombero.telefonoEmergencia}
+            onChange={handleChangeBombero}
+            required
+            fullWidth
+          />
+          <TextField
+            name="grupoSanguineo"
+            label="Grupo sanguíneo"
+            select
+            value={form.bombero.grupoSanguineo}
+            onChange={handleChangeBombero}
+            required
+            fullWidth
+          >
+            {GRUPOS_SANGUINEOS.map((grupo) => (
+              <MenuItem key={grupo} value={grupo}>
+                {grupo}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            name="obraSocial"
+            label="Obra social"
+            value={form.bombero.obraSocial}
+            onChange={handleChangeBombero}
+            required
+            fullWidth
+          />
+          <TextField
+            name="enfermedades"
+            label="Enfermedades / alergias"
+            placeholder="Dejar vacío si no tenés"
+            value={form.bombero.enfermedades}
+            onChange={handleChangeBombero}
+            fullWidth
+          />
         </Box>
       </Box>
 

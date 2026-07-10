@@ -7,6 +7,11 @@ export interface Bombero {
   telefono?: string
   rango?: string
   fechaIngreso?: string
+  // Datos médicos y de emergencia (se cargan al registrarse).
+  telefonoEmergencia?: string
+  obraSocial?: string
+  enfermedades?: string
+  grupoSanguineo?: string
   activo?: boolean
 }
 

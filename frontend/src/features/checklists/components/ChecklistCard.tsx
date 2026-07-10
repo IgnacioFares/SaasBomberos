@@ -10,9 +10,11 @@ import type { ChecklistTemplate } from '../types'
 interface Props {
   template: ChecklistTemplate
   onEliminar: (id: number) => void
+  // Sin el permiso "crear_checklists" se ocultan editar/eliminar.
+  puedeGestionar: boolean
 }
 
-const ChecklistCard = ({ template, onEliminar }: Props) => (
+const ChecklistCard = ({ template, onEliminar, puedeGestionar }: Props) => (
   <Paper
     elevation={0}
     className="rounded-2xl! flex flex-col gap-3 border border-slate-200 p-4 transition-shadow hover:shadow-md sm:p-5"
@@ -31,7 +33,9 @@ const ChecklistCard = ({ template, onEliminar }: Props) => (
           </Typography>
         </Box>
       </Box>
-      <Box className="flex shrink-0 items-center">
+      <Box className="flex shrink-0 items-center empty:hidden">
+        {puedeGestionar && (
+          <>
         <Tooltip title="Editar">
           <IconButton
             component={RouterLink}
@@ -53,6 +57,8 @@ const ChecklistCard = ({ template, onEliminar }: Props) => (
             <DeleteOutlineRoundedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
+          </>
+        )}
       </Box>
     </Box>
 

@@ -16,6 +16,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import useEquipos from '../hooks/useEquipos'
 import useCategorias from '../hooks/useCategorias'
 import useUbicaciones from '../hooks/useUbicaciones'
+import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
 import FiltrosInventario from '../components/FiltrosInventario'
 import InventarioTabla from '../components/InventarioTabla'
 import EquipoCardList from '../components/EquipoCardList'
@@ -33,6 +34,8 @@ const InventarioPage = () => {
   const { equipos, loading, error } = useEquipos()
   const { raices } = useCategorias()
   const { ubicaciones } = useUbicaciones()
+  const { tienePermiso } = usePermisos()
+  const puedeGestionar = tienePermiso(PERMISOS.GESTIONAR_INVENTARIO)
 
   const [tab, setTab] = useState<TabActiva>('inventario')
   const [mensajeExito, setMensajeExito] = useState<string | null>(mensajeInicial)
@@ -54,16 +57,18 @@ const InventarioPage = () => {
             Control de stock y equipamiento del cuartel.
           </Typography>
         </Box>
-        <Button
-          component={RouterLink}
-          to="/inventario/nuevo"
-          variant="contained"
-          color="primary"
-          startIcon={<AddRoundedIcon />}
-          className="self-start! sm:self-auto!"
-        >
-          Nuevo equipo
-        </Button>
+        {puedeGestionar && (
+          <Button
+            component={RouterLink}
+            to="/inventario/nuevo"
+            variant="contained"
+            color="primary"
+            startIcon={<AddRoundedIcon />}
+            className="self-start! sm:self-auto!"
+          >
+            Nuevo equipo
+          </Button>
+        )}
       </Box>
 
       <Tabs
@@ -78,7 +83,7 @@ const InventarioPage = () => {
       >
         <Tab value="inventario" label="Inventario" />
         <Tab value="panorama" label="Panorama" />
-        <Tab value="configuracion" label="Configuración" />
+        {puedeGestionar && <Tab value="configuracion" label="Configuración" />}
       </Tabs>
 
       {mensajeExito && (

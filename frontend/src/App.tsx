@@ -15,6 +15,7 @@ import InventarioPage from './features/inventario/pages/InventarioPage'
 import NuevoEquipoPage from './features/inventario/pages/NuevoEquipoPage'
 import EditarEquipoPage from './features/inventario/pages/EditarEquipoPage'
 import EquipoDetallePage from './features/inventario/pages/EquipoDetallePage'
+import AdministracionPage from './features/administracion/pages/AdministracionPage'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
         <Route path="/inventario/nuevo" element={<NuevoEquipoPage />} />
         <Route path="/inventario/:id" element={<EquipoDetallePage />} />
         <Route path="/inventario/:id/editar" element={<EditarEquipoPage />} />
+        <Route path="/administracion" element={<AdministracionPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

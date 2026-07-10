@@ -18,6 +18,7 @@ import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
+import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded'
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import { useAuthContext } from '../../features/auth/hooks/useAuthContext'
@@ -30,6 +31,8 @@ const navItems = [
   { to: '/movilidades', label: 'Movilidades', icon: DirectionsCarFilledRoundedIcon },
   { to: '/checklists', label: 'Checklists', icon: ChecklistRoundedIcon },
   { to: '/inventario', label: 'Inventario', icon: Inventory2RoundedIcon },
+  // Solo visible para administradores (se filtra en el render).
+  { to: '/administracion', label: 'Administración', icon: AdminPanelSettingsRoundedIcon, soloAdmin: true },
 ]
 
 const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
@@ -67,12 +70,14 @@ const AppLayout = () => {
       </Box>
 
       <Box component="nav" className="flex flex-col gap-1 px-3 py-2">
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink key={to} to={to} className={navLinkClasses} onClick={() => setMobileOpen(false)}>
-            <Icon fontSize="small" />
-            {label}
-          </NavLink>
-        ))}
+        {navItems
+          .filter((item) => !item.soloAdmin || usuario?.rol === 'Administrador')
+          .map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className={navLinkClasses} onClick={() => setMobileOpen(false)}>
+              <Icon fontSize="small" />
+              {label}
+            </NavLink>
+          ))}
       </Box>
 
       <Box className="flex-1" />

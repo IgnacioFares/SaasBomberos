@@ -35,6 +35,7 @@ import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import EventRoundedIcon from '@mui/icons-material/EventRounded'
 import useEquipoDetalle from '../hooks/useEquipoDetalle'
 import useUbicaciones from '../hooks/useUbicaciones'
+import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
 import MovimientosTimeline from '../components/MovimientosTimeline'
 import {
   AgregarUnidadesDialog,
@@ -72,6 +73,9 @@ const EquipoDetallePage = () => {
     eliminar,
   } = useEquipoDetalle(id ? Number(id) : null)
   const { ubicaciones } = useUbicaciones()
+  const { tienePermiso } = usePermisos()
+  const puedeGestionar = tienePermiso(PERMISOS.GESTIONAR_INVENTARIO)
+  const puedeOperar = tienePermiso(PERMISOS.MOVER_STOCK)
 
   const [mensajeExito, setMensajeExito] = useState<string | null>(mensajeInicial)
   const [accion, setAccion] = useState<AccionEquipo | null>(null)
@@ -176,22 +180,24 @@ const EquipoDetallePage = () => {
               )}
             </Box>
           </Box>
-          <Box className="flex shrink-0 items-center gap-1">
-            <Button
-              component={RouterLink}
-              to={`/inventario/${equipo.id}/editar`}
-              variant="outlined"
-              size="small"
-              startIcon={<EditRoundedIcon />}
-            >
-              Editar
-            </Button>
-            <Tooltip title="Eliminar del inventario">
-              <IconButton color="error" onClick={() => setConfirmarBaja(true)} aria-label="Eliminar equipo">
-                <DeleteOutlineRoundedIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          {puedeGestionar && (
+            <Box className="flex shrink-0 items-center gap-1">
+              <Button
+                component={RouterLink}
+                to={`/inventario/${equipo.id}/editar`}
+                variant="outlined"
+                size="small"
+                startIcon={<EditRoundedIcon />}
+              >
+                Editar
+              </Button>
+              <Tooltip title="Eliminar del inventario">
+                <IconButton color="error" onClick={() => setConfirmarBaja(true)} aria-label="Eliminar equipo">
+                  <DeleteOutlineRoundedIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          )}
         </Box>
 
         {equipo.descripcion && (
@@ -222,16 +228,18 @@ const EquipoDetallePage = () => {
           </Alert>
         )}
 
-        <Box className="flex flex-wrap gap-2">
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<ChatBubbleOutlineRoundedIcon />}
-            onClick={() => setAccion({ tipo: 'observacion' })}
-          >
-            Agregar observación
-          </Button>
-        </Box>
+        {puedeOperar && (
+          <Box className="flex flex-wrap gap-2">
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<ChatBubbleOutlineRoundedIcon />}
+              onClick={() => setAccion({ tipo: 'observacion' })}
+            >
+              Agregar observación
+            </Button>
+          </Box>
+        )}
       </Paper>
 
       {/* Stock por ubicación (POR_CANTIDAD): el total se reparte entre
@@ -243,14 +251,16 @@ const EquipoDetallePage = () => {
               Stock por ubicación (total: {equipo.cantidad ?? 0}
               {equipo.unidadMedida ? ` ${equipo.unidadMedida}` : ''})
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<AddRoundedIcon />}
-              onClick={() => setAccion({ tipo: 'ajustar-stock' })}
-            >
-              Agregar stock
-            </Button>
+            {puedeOperar && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<AddRoundedIcon />}
+                onClick={() => setAccion({ tipo: 'ajustar-stock' })}
+              >
+                Agregar stock
+              </Button>
+            )}
           </Box>
           {equipo.stock.length === 0 ? (
             <Typography variant="body2" color="text.secondary" className="py-4 text-center">
@@ -278,24 +288,26 @@ const EquipoDetallePage = () => {
                         sx={{ height: 24, bgcolor: estiloLinea.bg, color: estiloLinea.color, fontWeight: 700 }}
                       />
                     </Box>
-                    <Box className="flex shrink-0 items-center gap-1">
-                      <Button
-                        size="small"
-                        startIcon={<SwapHorizRoundedIcon />}
-                        onClick={() => setAccion({ tipo: 'mover-stock', linea })}
-                      >
-                        Mover
-                      </Button>
-                      <Button
-                        size="small"
-                        color="inherit"
-                        sx={{ color: '#64748B' }}
-                        startIcon={<EditRoundedIcon />}
-                        onClick={() => setAccion({ tipo: 'ajustar-stock', linea })}
-                      >
-                        Ajustar
-                      </Button>
-                    </Box>
+                    {puedeOperar && (
+                      <Box className="flex shrink-0 items-center gap-1">
+                        <Button
+                          size="small"
+                          startIcon={<SwapHorizRoundedIcon />}
+                          onClick={() => setAccion({ tipo: 'mover-stock', linea })}
+                        >
+                          Mover
+                        </Button>
+                        <Button
+                          size="small"
+                          color="inherit"
+                          sx={{ color: '#64748B' }}
+                          startIcon={<EditRoundedIcon />}
+                          onClick={() => setAccion({ tipo: 'ajustar-stock', linea })}
+                        >
+                          Ajustar
+                        </Button>
+                      </Box>
+                    )}
                   </Box>
                 )
               })}
@@ -311,14 +323,16 @@ const EquipoDetallePage = () => {
             <Typography variant="subtitle1" className="font-semibold!">
               Unidades ({equipo.unidades.length})
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<AddRoundedIcon />}
-              onClick={() => setAccion({ tipo: 'agregar-unidades' })}
-            >
-              Agregar unidades
-            </Button>
+            {puedeOperar && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<AddRoundedIcon />}
+                onClick={() => setAccion({ tipo: 'agregar-unidades' })}
+              >
+                Agregar unidades
+              </Button>
+            )}
           </Box>
           <Box className="flex flex-col divide-y divide-slate-100">
             {equipo.unidades.map((unidad) => {
@@ -363,13 +377,15 @@ const EquipoDetallePage = () => {
                       </Typography>
                     )}
                   </Box>
-                  <IconButton
-                    size="small"
-                    aria-label={`Acciones unidad ${unidad.numero}`}
-                    onClick={(e) => setMenuUnidad({ anchor: e.currentTarget, unidad })}
-                  >
-                    <MoreVertRoundedIcon fontSize="small" />
-                  </IconButton>
+                  {puedeOperar && (
+                    <IconButton
+                      size="small"
+                      aria-label={`Acciones unidad ${unidad.numero}`}
+                      onClick={(e) => setMenuUnidad({ anchor: e.currentTarget, unidad })}
+                    >
+                      <MoreVertRoundedIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </Box>
               )
             })}

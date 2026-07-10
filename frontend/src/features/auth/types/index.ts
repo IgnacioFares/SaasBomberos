@@ -21,4 +21,6 @@ export interface Usuario {
     bombero: Bombero
     rol: string
     estado: string
+    // Permisos efectivos (rol + extras); el Administrador los tiene todos.
+    permisos: string[]
 }
