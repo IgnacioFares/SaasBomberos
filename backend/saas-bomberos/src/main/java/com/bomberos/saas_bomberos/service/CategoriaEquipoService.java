@@ -1,5 +1,6 @@
 package com.bomberos.saas_bomberos.service;
 
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.dto.CategoriaEquipoDto;
 import com.bomberos.saas_bomberos.entity.CategoriaEquipo;
 import com.bomberos.saas_bomberos.entity.Usuario;
@@ -16,6 +17,7 @@ public class CategoriaEquipoService {
 
     private final CategoriaEquipoRepository categoriaRepository;
     private final EquipoRepository equipoRepository;
+    private final AutorizacionService autorizacion;
 
     public List<CategoriaEquipoDto.Response> obtenerTodas() {
         return categoriaRepository.findByActivoTrueOrderByNombreAsc().stream()
@@ -80,12 +82,9 @@ public class CategoriaEquipoService {
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
     }
 
-    // Punto único de autorización del módulo de inventario. Por decisión
-    // del cuartel, por ahora cualquier usuario autenticado puede todo;
-    // cuando se definan roles/permisos, la restricción se reactiva acá.
-    @SuppressWarnings("unused")
+    // Administrar categorías requiere el permiso "gestionar_inventario".
     private void exigirPermiso(Usuario usuario, String accion) {
-        // Sin restricciones por ahora.
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
     }
 
     private CategoriaEquipoDto.Response mapear(CategoriaEquipo c) {

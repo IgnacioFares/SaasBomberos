@@ -7,6 +7,7 @@ import com.bomberos.saas_bomberos.entity.ChecklistSeccion;
 import com.bomberos.saas_bomberos.entity.ChecklistTemplate;
 import com.bomberos.saas_bomberos.entity.Movilidad;
 import com.bomberos.saas_bomberos.entity.Usuario;
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.repository.ChecklistTemplateRepository;
 import com.bomberos.saas_bomberos.repository.MovilidadRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class ChecklistTemplateService {
 
     private final ChecklistTemplateRepository templateRepository;
     private final MovilidadRepository movilidadRepository;
+    private final AutorizacionService autorizacion;
 
     public ChecklistTemplateResponse crear(ChecklistTemplateRequest request, Usuario usuario) {
         exigirPermiso(usuario, "crear");
@@ -128,13 +130,10 @@ public class ChecklistTemplateService {
                 .orElseThrow(() -> new RuntimeException("Checklist no encontrado"));
     }
 
-    // Punto único de autorización del módulo. Por decisión del cuartel,
-    // por ahora cualquier usuario autenticado puede gestionar plantillas;
-    // cuando se definan roles/permisos definitivos, la restricción se
-    // reactiva acá sin tocar el resto del servicio.
-    @SuppressWarnings("unused")
+    // Crear/editar/eliminar plantillas requiere el permiso
+    // "crear_checklists"; realizarlas queda libre para todos.
     private void exigirPermiso(Usuario usuario, String accion) {
-        // Sin restricciones por ahora.
+        autorizacion.exigir(usuario, PermisosCatalogo.CREAR_CHECKLISTS);
     }
 
     private ChecklistTemplateResponse mapear(ChecklistTemplate t) {

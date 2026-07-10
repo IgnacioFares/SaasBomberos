@@ -1,7 +1,10 @@
 package com.bomberos.saas_bomberos.controller;
 
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
+import com.bomberos.saas_bomberos.dto.UsuarioAdminDto;
 import com.bomberos.saas_bomberos.entity.Bombero;
 import com.bomberos.saas_bomberos.entity.Usuario;
+import com.bomberos.saas_bomberos.service.AutorizacionService;
 import com.bomberos.saas_bomberos.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.Data;
@@ -10,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 // Le dice a Spring: "esta clase es un controlador REST, recibe peticiones
 // HTTP y devuelve respuestas en formato JSON automáticamente".
@@ -30,6 +35,7 @@ public class UsuarioController {
     // hacer login, etc.). El Controller nunca hace la lógica él mismo,
     // solo la delega acá.
     private final UsuarioService usuarioService;
+    private final AutorizacionService autorizacion;
 
     // Escucha peticiones POST a /api/usuarios/registro
     @PostMapping("/registro")
@@ -83,27 +89,64 @@ public class UsuarioController {
                 usuario.getEmail(),
                 usuario.getBombero(),
                 usuario.getRol().getNombre(),
-                usuario.getEstado()
+                usuario.getEstado(),
+                autorizacion.permisosEfectivos(usuario)
         ));
     }
 
-    // Escucha peticiones PUT a /api/usuarios/{id}/rol
-    // Reasigna el rol de un usuario existente. Por ahora no está
-    // restringido a administradores (todavía no hay autorización por
-    // rol/permiso en SecurityConfig, solo autenticación), así que
-    // cualquier usuario logueado puede usarlo.
+    // ---------------------------------------------------------
+    // Panel de administración (solo rol Administrador; la
+    // verificación vive en UsuarioService / AutorizacionService).
+    // ---------------------------------------------------------
+
+    // Todas las personas registradas en el sistema, con su rol y
+    // permisos extra, para el panel de administración.
+    @GetMapping
+    public ResponseEntity<List<UsuarioAdminDto.Response>> obtenerTodos(
+            @AuthenticationPrincipal Usuario solicitante
+    ) {
+        return ResponseEntity.ok(usuarioService.obtenerTodosParaAdmin(solicitante));
+    }
+
+    // Catálogo de permisos que el administrador puede otorgar.
+    @GetMapping("/permisos-disponibles")
+    public ResponseEntity<List<UsuarioAdminDto.PermisoInfo>> permisosDisponibles() {
+        return ResponseEntity.ok(PermisosCatalogo.CATALOGO.stream()
+                .map(p -> new UsuarioAdminDto.PermisoInfo(p.nombre(), p.etiqueta(), p.descripcion()))
+                .toList());
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<UsuarioAdminDto.RolInfo>> roles(@AuthenticationPrincipal Usuario solicitante) {
+        return ResponseEntity.ok(usuarioService.obtenerRoles(solicitante));
+    }
+
+    // Reemplaza los permisos extra de un usuario.
+    @PutMapping("/{id}/permisos")
+    public ResponseEntity<UsuarioAdminDto.Response> asignarPermisos(
+            @PathVariable Long id,
+            @RequestBody UsuarioAdminDto.AsignarPermisosRequest request,
+            @AuthenticationPrincipal Usuario solicitante
+    ) {
+        return ResponseEntity.ok(usuarioService.asignarPermisos(id, request.permisos(), solicitante));
+    }
+
+    // Reasigna el rol de un usuario (solo administradores; nadie puede
+    // cambiar su propio rol para no dejar al sistema sin admin).
     @PutMapping("/{id}/rol")
     public ResponseEntity<UsuarioActualResponse> asignarRol(
             @PathVariable Long id,
-            @RequestBody AsignarRolRequest request
+            @RequestBody AsignarRolRequest request,
+            @AuthenticationPrincipal Usuario solicitante
     ) {
-        Usuario usuario = usuarioService.asignarRol(id, request.getRolId());
+        Usuario usuario = usuarioService.asignarRol(id, request.getRolId(), solicitante);
         return ResponseEntity.ok(new UsuarioActualResponse(
                 usuario.getId(),
                 usuario.getEmail(),
                 usuario.getBombero(),
                 usuario.getRol().getNombre(),
-                usuario.getEstado()
+                usuario.getEstado(),
+                autorizacion.permisosEfectivos(usuario)
         ));
     }
 
@@ -151,7 +194,8 @@ public class UsuarioController {
     }
 
     // Forma del JSON que devuelve /api/usuarios/me: los datos del
-    // usuario logueado junto con su bombero y el nombre de su rol.
+    // usuario logueado junto con su bombero, el nombre de su rol y sus
+    // permisos efectivos (rol + extras; el admin tiene todos).
     @Data
     static class UsuarioActualResponse {
         private final Long id;
@@ -159,6 +203,7 @@ public class UsuarioController {
         private final Bombero bombero;
         private final String rol;
         private final String estado;
+        private final Set<String> permisos;
     }
 
     // Forma del JSON que el frontend manda para reasignar un rol:

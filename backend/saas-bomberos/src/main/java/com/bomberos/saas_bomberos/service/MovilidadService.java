@@ -1,6 +1,8 @@
 package com.bomberos.saas_bomberos.service;
 
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.entity.Movilidad;
+import com.bomberos.saas_bomberos.entity.Usuario;
 import com.bomberos.saas_bomberos.repository.MovilidadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import java.util.Optional;
 public class MovilidadService {
 
     private final MovilidadRepository movilidadRepository;
+    private final AutorizacionService autorizacion;
 
     public List<Movilidad> obtenerTodas() {
         return movilidadRepository.findByActivoTrue();
@@ -21,7 +24,8 @@ public class MovilidadService {
         return movilidadRepository.findById(id);
     }
 
-    public Movilidad guardar(Movilidad movilidad) {
+    public Movilidad guardar(Movilidad movilidad, Usuario usuario) {
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_MOVILIDADES);
         if (movilidad.getPatente() != null && !movilidad.getPatente().isBlank()
                 && movilidadRepository.existsByPatente(movilidad.getPatente())) {
             throw new RuntimeException("Ya existe una movilidad con esa patente");
@@ -29,7 +33,8 @@ public class MovilidadService {
         return movilidadRepository.save(movilidad);
     }
 
-    public Movilidad actualizar(Long id, Movilidad movilidadActualizada) {
+    public Movilidad actualizar(Long id, Movilidad movilidadActualizada, Usuario usuario) {
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_MOVILIDADES);
         Movilidad movilidad = movilidadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movilidad no encontrada"));
 
@@ -44,7 +49,8 @@ public class MovilidadService {
         return movilidadRepository.save(movilidad);
     }
 
-    public void desactivar(Long id) {
+    public void desactivar(Long id, Usuario usuario) {
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_MOVILIDADES);
         Movilidad movilidad = movilidadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movilidad no encontrada"));
         movilidad.setActivo(false);

@@ -1,5 +1,6 @@
 package com.bomberos.saas_bomberos.service;
 
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.dto.UbicacionEquipoDto;
 import com.bomberos.saas_bomberos.entity.UbicacionEquipo;
 import com.bomberos.saas_bomberos.entity.Usuario;
@@ -14,6 +15,7 @@ import java.util.List;
 public class UbicacionEquipoService {
 
     private final UbicacionEquipoRepository ubicacionRepository;
+    private final AutorizacionService autorizacion;
 
     public List<UbicacionEquipoDto.Response> obtenerTodas() {
         return ubicacionRepository.findByActivoTrueOrderByNombreAsc().stream()
@@ -63,11 +65,9 @@ public class UbicacionEquipoService {
                 .orElseThrow(() -> new RuntimeException("Ubicación no encontrada"));
     }
 
-    // Ver comentario en CategoriaEquipoService: autorización deshabilitada
-    // a propósito por ahora, punto único para reactivarla.
-    @SuppressWarnings("unused")
+    // Administrar ubicaciones requiere el permiso "gestionar_inventario".
     private void exigirPermiso(Usuario usuario, String accion) {
-        // Sin restricciones por ahora.
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
     }
 
     private UbicacionEquipoDto.Response mapear(UbicacionEquipo u) {

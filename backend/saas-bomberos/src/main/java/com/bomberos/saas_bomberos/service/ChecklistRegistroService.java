@@ -11,6 +11,7 @@ import com.bomberos.saas_bomberos.entity.ChecklistRegistroItem;
 import com.bomberos.saas_bomberos.entity.ChecklistSeccion;
 import com.bomberos.saas_bomberos.entity.ChecklistTemplate;
 import com.bomberos.saas_bomberos.entity.Usuario;
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.repository.BomberoRepository;
 import com.bomberos.saas_bomberos.repository.ChecklistRegistroRepository;
 import com.bomberos.saas_bomberos.repository.ChecklistTemplateRepository;
@@ -30,6 +31,7 @@ public class ChecklistRegistroService {
     private final ChecklistRegistroRepository registroRepository;
     private final ChecklistTemplateRepository templateRepository;
     private final BomberoRepository bomberoRepository;
+    private final AutorizacionService autorizacion;
 
     public ChecklistRegistroResponse crear(ChecklistRegistroRequest request, Usuario realizadoPor) {
         if (request.templateId() == null) {
@@ -66,6 +68,7 @@ public class ChecklistRegistroService {
     }
 
     public ChecklistRegistroResponse firmar(Long id, Usuario firmante) {
+        autorizacion.exigir(firmante, PermisosCatalogo.FIRMAR_CHECKLISTS);
         ChecklistRegistro registro = obtenerEntidad(id);
         if (registro.getEstado() == ChecklistRegistroEstado.FIRMADO) {
             throw new RuntimeException("Este checklist ya fue firmado");

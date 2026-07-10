@@ -42,6 +42,18 @@ public class Bombero {
  @Column(name = "fecha_ingreso")
  private LocalDate fechaIngreso;
 
+ // Datos médicos y de emergencia (opcionales, se cargan al registrarse).
+ @Column(name = "telefono_emergencia")
+ private String telefonoEmergencia;
+
+ @Column(name = "obra_social")
+ private String obraSocial;
+
+ private String enfermedades;
+
+ @Column(name = "grupo_sanguineo")
+ private String grupoSanguineo;
+
  @Column(nullable = false)
  private Boolean activo = true;
 }

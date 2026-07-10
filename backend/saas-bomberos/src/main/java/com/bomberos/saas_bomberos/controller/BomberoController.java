@@ -1,11 +1,13 @@
 package com.bomberos.saas_bomberos.controller;
 
 import com.bomberos.saas_bomberos.entity.Bombero;
+import com.bomberos.saas_bomberos.entity.Usuario;
 import com.bomberos.saas_bomberos.service.BomberoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -29,20 +31,28 @@ public class BomberoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Requieren el permiso "gestionar_personal" (ver AutorizacionService).
     @PostMapping
-    public ResponseEntity<Bombero> crear(@Valid @RequestBody Bombero bombero) {
-        Bombero nuevo = bomberoService.guardar(bombero);
+    public ResponseEntity<Bombero> crear(
+            @Valid @RequestBody Bombero bombero,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        Bombero nuevo = bomberoService.guardar(bombero, usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Bombero> actualizar(@PathVariable Long id, @Valid @RequestBody Bombero bombero) {
-        return ResponseEntity.ok(bomberoService.actualizar(id, bombero));
+    public ResponseEntity<Bombero> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody Bombero bombero,
+            @AuthenticationPrincipal Usuario usuario
+    ) {
+        return ResponseEntity.ok(bomberoService.actualizar(id, bombero, usuario));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
-        bomberoService.desactivar(id);
+    public ResponseEntity<Void> desactivar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        bomberoService.desactivar(id, usuario);
         return ResponseEntity.noContent().build();
     }
 

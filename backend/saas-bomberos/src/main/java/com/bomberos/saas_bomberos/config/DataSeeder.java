@@ -7,7 +7,9 @@ import com.bomberos.saas_bomberos.repository.RolRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.Set;
 
 // UsuarioService.registrar() depende de que exista un rol "Usuario
@@ -30,16 +32,22 @@ public class DataSeeder implements CommandLineRunner {
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
 
+    // Transaccional: el runner corre fuera de una request web, sin
+    // sesión de Hibernate; sin esto, tocar la colección lazy
+    // rol.getPermisos() lanza LazyInitializationException.
     @Override
+    @Transactional
     public void run(String... args) {
         if (rolRepository.findByNombre(ROL_ESTANDAR).isEmpty()) {
             Rol rolEstandar = new Rol();
             rolEstandar.setNombre(ROL_ESTANDAR);
             rolEstandar.setDescripcion("Rol básico asignado automáticamente al registrarse");
-            rolEstandar.setPermisos(Set.of(
+            // HashSet mutable (no Set.of): más abajo se le agregan los
+            // permisos del catálogo a la colección del rol.
+            rolEstandar.setPermisos(new HashSet<>(Set.of(
                     obtenerOCrearPermiso("ver_bomberos"),
                     obtenerOCrearPermiso("ver_movilidades")
-            ));
+            )));
             rolRepository.save(rolEstandar);
         }
 
@@ -47,16 +55,32 @@ public class DataSeeder implements CommandLineRunner {
             Rol rolAdmin = new Rol();
             rolAdmin.setNombre(ROL_ADMIN);
             rolAdmin.setDescripcion("Acceso completo al sistema");
-            rolAdmin.setPermisos(Set.of(
+            rolAdmin.setPermisos(new HashSet<>(Set.of(
                     obtenerOCrearPermiso("ver_bomberos"),
                     obtenerOCrearPermiso("ver_movilidades"),
                     obtenerOCrearPermiso("administrar_bomberos"),
                     obtenerOCrearPermiso("administrar_movilidades"),
                     obtenerOCrearPermiso("administrar_usuarios"),
                     obtenerOCrearPermiso("administrar_roles")
-            ));
+            )));
             rolRepository.save(rolAdmin);
         }
+
+        // Crea las filas de los permisos funcionales del catálogo (los
+        // que el admin otorga por usuario desde el panel) y se los
+        // asocia al rol Administrador. Idempotente.
+        rolRepository.findByNombre(ROL_ADMIN).ifPresent(rolAdmin -> {
+            boolean cambio = false;
+            for (PermisosCatalogo.PermisoDef def : PermisosCatalogo.CATALOGO) {
+                Permiso permiso = obtenerOCrearPermiso(def.nombre());
+                if (rolAdmin.getPermisos().add(permiso)) {
+                    cambio = true;
+                }
+            }
+            if (cambio) {
+                rolRepository.save(rolAdmin);
+            }
+        });
     }
 
     private Permiso obtenerOCrearPermiso(String nombre) {

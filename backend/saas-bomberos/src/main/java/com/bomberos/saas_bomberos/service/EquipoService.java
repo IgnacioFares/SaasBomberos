@@ -1,5 +1,6 @@
 package com.bomberos.saas_bomberos.service;
 
+import com.bomberos.saas_bomberos.config.PermisosCatalogo;
 import com.bomberos.saas_bomberos.dto.EquipoAccionDto;
 import com.bomberos.saas_bomberos.dto.EquipoMovimientoResponse;
 import com.bomberos.saas_bomberos.dto.EquipoRequest;
@@ -38,6 +39,7 @@ public class EquipoService {
     private final CategoriaEquipoRepository categoriaRepository;
     private final UbicacionEquipoRepository ubicacionRepository;
     private final EquipoMovimientoRepository movimientoRepository;
+    private final AutorizacionService autorizacion;
 
     // ------------------------------------------------------------------
     // Consultas
@@ -71,7 +73,7 @@ public class EquipoService {
     // ------------------------------------------------------------------
 
     public EquipoResponse crear(EquipoRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "crear");
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
 
         Equipo equipo = new Equipo();
         EquipoSeguimiento seguimiento = parsearSeguimiento(request.seguimiento());
@@ -125,7 +127,7 @@ public class EquipoService {
     // unidades (POR_UNIDAD) se gestionan con sus propias acciones para
     // que todo cambio quede en el historial.
     public EquipoResponse actualizar(Long id, EquipoRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
         Equipo equipo = obtenerEntidad(id);
 
         if (request.seguimiento() != null
@@ -140,7 +142,7 @@ public class EquipoService {
     }
 
     public void eliminar(Long id, Usuario usuario) {
-        exigirPermiso(usuario, "eliminar");
+        autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
         Equipo equipo = obtenerEntidad(id);
         equipo.setActivo(false);
         equipoRepository.save(equipo);
@@ -152,7 +154,7 @@ public class EquipoService {
     // ------------------------------------------------------------------
 
     public EquipoResponse moverStock(Long id, EquipoAccionDto.MoverStockRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerPorCantidad(id);
 
         EquipoStock origen = obtenerLinea(equipo, request.stockId());
@@ -194,7 +196,7 @@ public class EquipoService {
     }
 
     public EquipoResponse ajustarStock(Long id, EquipoAccionDto.AjustarStockRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerPorCantidad(id);
 
         if (request.cantidad() == null || request.cantidad() < 0) {
@@ -236,7 +238,7 @@ public class EquipoService {
     // ------------------------------------------------------------------
 
     public EquipoResponse cambiarEstado(Long id, EquipoAccionDto.CambioEstadoRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerEntidad(id);
         EquipoEstado nuevo = parsearEstado(request.estado());
         if (nuevo == null) {
@@ -253,7 +255,7 @@ public class EquipoService {
     }
 
     public EquipoResponse cambiarUbicacion(Long id, EquipoAccionDto.CambioUbicacionRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerEntidad(id);
         if (request.ubicacionId() == null) {
             throw new RuntimeException("Indicá la nueva ubicación");
@@ -270,7 +272,7 @@ public class EquipoService {
     }
 
     public EquipoResponse agregarObservacion(Long id, EquipoAccionDto.ObservacionRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerEntidad(id);
         if (request.observacion() == null || request.observacion().isBlank()) {
             throw new RuntimeException("La observación no puede estar vacía");
@@ -291,7 +293,7 @@ public class EquipoService {
     }
 
     public EquipoResponse agregarUnidades(Long id, EquipoAccionDto.AgregarUnidadesRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerEntidad(id);
         if (equipo.getSeguimiento() != EquipoSeguimiento.POR_UNIDAD) {
             throw new RuntimeException(
@@ -329,7 +331,7 @@ public class EquipoService {
 
     public EquipoResponse actualizarUnidad(Long id, Long unidadId,
                                            EquipoAccionDto.UnidadUpdateRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        autorizacion.exigir(usuario, PermisosCatalogo.MOVER_STOCK);
         Equipo equipo = obtenerEntidad(id);
         EquipoUnidad unidad = obtenerUnidad(equipo, unidadId);
         unidad.setNumeroSerie(vacioANull(request.numeroSerie()));
@@ -472,13 +474,6 @@ public class EquipoService {
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException("Estado desconocido: " + valor);
         }
-    }
-
-    // Ver comentario en CategoriaEquipoService: autorización deshabilitada
-    // a propósito por ahora, punto único para reactivarla.
-    @SuppressWarnings("unused")
-    private void exigirPermiso(Usuario usuario, String accion) {
-        // Sin restricciones por ahora.
     }
 
     // ------------------------------------------------------------------
