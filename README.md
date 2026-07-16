@@ -74,28 +74,3 @@ src/
 └── hooks/        → hooks globales reutilizables
 ```
 
----
-
-## 🔐 Seguridad y datos sensibles
-
-Este repositorio **no incluye** archivos de configuración con credenciales reales (`application.properties`). Dichos archivos están excluidos mediante `.gitignore` y deben configurarse de forma local antes de ejecutar el proyecto.
-
----
-
-## 🚧 Estado del proyecto
-
-Proyecto en desarrollo activo. Módulos actuales:
-
-- [x] Gestión de Bomberos (CRUD completo)
-- [x] Gestión de Movilidades (CRUD completo)
-- [ ] Secciones e ítems de checklist
-- [ ] Registro de checklists realizados
-- [ ] Autenticación con JWT
-- [ ] Sistema de roles y permisos
-- [ ] Panel de administración de usuarios
-
----
-
-## 👤 Autor
-
-Proyecto desarrollado de forma individual como parte de un proceso de aprendizaje full-stack, aplicado a un caso real de gestión para cuarteles de bomberos.
