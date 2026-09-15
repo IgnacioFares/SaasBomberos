@@ -52,7 +52,7 @@ const BomberoDetalleDialog = ({ bombero, onCerrar }: Props) => {
       {/* Encabezado con identidad y lo crítico a simple vista */}
       <Box
         className="flex items-center gap-4 px-6 pb-4 pt-6 text-white"
-        sx={{ background: 'linear-gradient(120deg, #0B1C4A 0%, #1E3A8A 60%, #0D9488 140%)' }}
+        sx={{ background: 'linear-gradient(120deg, #1C1917 0%, #44403C 60%, #57534E 140%)' }}
       >
         <Avatar
           sx={{
@@ -61,7 +61,7 @@ const BomberoDetalleDialog = ({ bombero, onCerrar }: Props) => {
             bgcolor: 'rgba(255,255,255,0.15)',
             fontSize: 22,
             fontWeight: 700,
-            border: '2px solid rgba(94,234,212,0.6)',
+            border: '2px solid rgba(252,211,77,0.6)',
           }}
         >
           {iniciales(bombero.nombre, bombero.apellido)}
@@ -73,7 +73,7 @@ const BomberoDetalleDialog = ({ bombero, onCerrar }: Props) => {
           <Box className="mt-1 flex flex-wrap items-center gap-1.5">
             {bombero.rango && (
               <Chip
-                icon={<ShieldRoundedIcon sx={{ color: '#5EEAD4!important', fontSize: 15 }} />}
+                icon={<ShieldRoundedIcon sx={{ color: '#FCD34D!important', fontSize: 15 }} />}
                 label={bombero.rango}
                 size="small"
                 sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#E2E8F0', fontWeight: 600, height: 24 }}

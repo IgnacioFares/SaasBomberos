@@ -13,6 +13,7 @@ import {
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import DoneAllRoundedIcon from '@mui/icons-material/DoneAllRounded'
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded'
+import BotonVolver from '../../../components/BotonVolver'
 import { getTemplate, createRegistro } from '../services/checklistService'
 import { extraerMensajeError } from '../../../utils/http'
 import type { ChecklistTemplate, ResultadoRequest, ResumenRegistro, RespuestaItem } from '../types'
@@ -168,6 +169,7 @@ const RealizarChecklistPage = () => {
 
   return (
     <Box className="flex flex-col gap-4 pb-24">
+      <BotonVolver to="/checklists" texto="Checklists" />
       <Paper
         elevation={0}
         className="rounded-2xl! border border-slate-200 p-4 sm:p-5"
@@ -199,7 +201,7 @@ const RealizarChecklistPage = () => {
             bgcolor: '#E2E8F0',
             '& .MuiLinearProgress-bar': {
               borderRadius: 9999,
-              background: 'linear-gradient(90deg, #1E3A8A, #0D9488)',
+              background: 'linear-gradient(90deg, #7F1D1D, #B91C1C)',
             },
           }}
         />

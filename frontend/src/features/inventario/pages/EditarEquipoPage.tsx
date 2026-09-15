@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, CircularProgress, Paper, Typography } from '@mui/material'
+import BotonVolver from '../../../components/BotonVolver'
 import EquipoForm from '../components/EquipoForm'
 import { getEquipo, updateEquipo } from '../services/inventarioService'
 import { extraerMensajeError } from '../../../utils/http'
@@ -60,6 +61,7 @@ const EditarEquipoPage = () => {
 
   return (
     <Box className="flex flex-col gap-6">
+      <BotonVolver to={`/inventario/${equipo.id}`} texto={equipo.nombre} />
       <Box>
         <Typography variant="h5" className="font-bold!">
           Editar equipo

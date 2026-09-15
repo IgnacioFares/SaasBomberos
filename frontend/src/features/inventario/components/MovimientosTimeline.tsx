@@ -11,7 +11,7 @@ import { ETIQUETA_MOVIMIENTO, formatearFechaHora } from '../constants'
 
 const ICONO_TIPO: Record<MovimientoTipo, { icono: React.ReactElement; color: string; bg: string }> = {
   ALTA: { icono: <AddCircleRoundedIcon fontSize="small" />, color: '#166534', bg: '#DCFCE7' },
-  ACTUALIZACION: { icono: <SyncRoundedIcon fontSize="small" />, color: '#1E3A8A', bg: '#EFF4FF' },
+  ACTUALIZACION: { icono: <SyncRoundedIcon fontSize="small" />, color: '#9F1239', bg: '#FFE4E6' },
   CAMBIO_ESTADO: { icono: <SwapHorizRoundedIcon fontSize="small" />, color: '#92400E', bg: '#FEF3C7' },
   CAMBIO_UBICACION: { icono: <PlaceRoundedIcon fontSize="small" />, color: '#0F766E', bg: '#ECFDF9' },
   OBSERVACION: { icono: <ChatBubbleOutlineRoundedIcon fontSize="small" />, color: '#475569', bg: '#F1F5F9' },
@@ -64,7 +64,7 @@ const MovimientosTimeline = ({ movimientos }: Props) => {
                   <Chip
                     label={`Unidad N°${movimiento.unidadNumero}`}
                     size="small"
-                    sx={{ height: 20, fontSize: 11, bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
+                    sx={{ height: 20, fontSize: 11, bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 600 }}
                   />
                 )}
               </Box>

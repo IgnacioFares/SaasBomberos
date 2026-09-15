@@ -19,6 +19,7 @@ import { useAuthContext } from '../../auth/hooks/useAuthContext'
 import usePermisos from '../../auth/hooks/usePermisos'
 import useUsuariosAdmin from '../hooks/useUsuariosAdmin'
 import UsuarioPermisosDialog from '../components/UsuarioPermisosDialog'
+import ConfiguracionCuerpoCard from '../../partes/components/ConfiguracionCuerpoCard'
 import type { UsuarioAdmin } from '../types'
 
 const iniciales = (nombre: string, apellido: string) =>
@@ -94,6 +95,8 @@ const PanelAdministracion = () => {
         </Alert>
       )}
 
+      <ConfiguracionCuerpoCard />
+
       <TextField
         placeholder="Buscar por nombre, email o rango…"
         size="small"
@@ -130,7 +133,7 @@ const PanelAdministracion = () => {
                   <Box className="flex min-w-0 items-center gap-3">
                     <Avatar
                       sx={{
-                        bgcolor: esAdminUsuario ? '#1E3A8A' : '#0D9488',
+                        bgcolor: esAdminUsuario ? '#9F1239' : '#0D9488',
                         width: 44,
                         height: 44,
                         fontSize: 15,
@@ -160,7 +163,7 @@ const PanelAdministracion = () => {
                     size="small"
                     sx={
                       esAdminUsuario
-                        ? { bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 700, flexShrink: 0 }
+                        ? { bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 700, flexShrink: 0 }
                         : { bgcolor: '#F1F5F9', color: '#475569', fontWeight: 600, flexShrink: 0 }
                     }
                   />

@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   IconButton,
   MenuItem,
@@ -31,6 +32,7 @@ const CategoriasAdmin = () => {
   const [padreNueva, setPadreNueva] = useState<number | ''>('')
   const [editando, setEditando] = useState<CategoriaEquipo | null>(null)
   const [nombreEdicion, setNombreEdicion] = useState('')
+  const [eliminando, setEliminando] = useState<CategoriaEquipo | null>(null)
 
   const handleAgregar = async () => {
     if (!nombreNueva.trim()) return
@@ -47,6 +49,11 @@ const CategoriasAdmin = () => {
     if (ok) setEditando(null)
   }
 
+  const confirmarEliminar = async () => {
+    if (eliminando) await eliminar(eliminando.id)
+    setEliminando(null)
+  }
+
   const fila = (categoria: CategoriaEquipo, esSub: boolean) => (
     <Box
       key={categoria.id}
@@ -56,7 +63,7 @@ const CategoriasAdmin = () => {
         {esSub ? (
           <SubdirectoryArrowRightRoundedIcon sx={{ fontSize: 18, color: '#94A3B8' }} />
         ) : (
-          <CategoryRoundedIcon sx={{ fontSize: 18, color: '#1E3A8A' }} />
+          <CategoryRoundedIcon sx={{ fontSize: 18, color: '#9F1239' }} />
         )}
         <Typography variant="body2" className={`truncate ${esSub ? '' : 'font-semibold!'}`}>
           {categoria.nombre}
@@ -80,7 +87,7 @@ const CategoriasAdmin = () => {
             size="small"
             color="error"
             aria-label={`Eliminar ${categoria.nombre}`}
-            onClick={() => eliminar(categoria.id)}
+            onClick={() => setEliminando(categoria)}
           >
             <DeleteOutlineRoundedIcon fontSize="small" />
           </IconButton>
@@ -179,6 +186,25 @@ const CategoriasAdmin = () => {
           </Button>
           <Button variant="contained" onClick={handleGuardarEdicion} disabled={!nombreEdicion.trim()}>
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={eliminando !== null} onClose={() => setEliminando(null)} maxWidth="xs" fullWidth>
+        <DialogTitle className="font-bold!">Eliminar categoría</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            "{eliminando?.nombre}" se elimina
+            {eliminando?.padreId === null ? ' junto con sus subcategorías' : ''}. Los equipos que la
+            usan no se borran, pero quedan sin esa categoría.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="px-6! pb-4!">
+          <Button onClick={() => setEliminando(null)} color="inherit">
+            Cancelar
+          </Button>
+          <Button variant="contained" color="error" onClick={confirmarEliminar}>
+            Eliminar
           </Button>
         </DialogActions>
       </Dialog>

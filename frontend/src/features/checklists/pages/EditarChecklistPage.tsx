@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Box, CircularProgress, Paper, Typography } from '@mui/material'
+import BotonVolver from '../../../components/BotonVolver'
 import useChecklistTemplates from '../hooks/useChecklistTemplates'
 import ChecklistTemplateBuilder from '../components/ChecklistTemplateBuilder'
 import { getTemplate } from '../services/checklistService'
@@ -54,6 +55,7 @@ const EditarChecklistPage = () => {
 
   return (
     <Box className="flex flex-col gap-6">
+      <BotonVolver to="/checklists" texto="Checklists" />
       <Box>
         <Typography variant="h5" className="font-bold!">
           Editar checklist

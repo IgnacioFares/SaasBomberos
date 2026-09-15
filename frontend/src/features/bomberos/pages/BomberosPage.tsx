@@ -2,7 +2,13 @@ import { useMemo, useState } from 'react'
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   InputAdornment,
   MenuItem,
   TextField,
@@ -27,6 +33,12 @@ const BomberosPage = () => {
   const [busqueda, setBusqueda] = useState('')
   const [rango, setRango] = useState('')
   const [detalle, setDetalle] = useState<Bombero | null>(null)
+  const [eliminando, setEliminando] = useState<Bombero | null>(null)
+
+  const confirmarEliminar = async () => {
+    if (eliminando?.id) await eliminar(eliminando.id)
+    setEliminando(null)
+  }
 
   const filtrados = useMemo(() => {
     const texto = busqueda.trim().toLowerCase()
@@ -101,13 +113,30 @@ const BomberosPage = () => {
       ) : (
         <BomberoTable
           bomberos={filtrados}
-          onEliminar={eliminar}
+          onEliminar={setEliminando}
           onVer={setDetalle}
           puedeGestionar={puedeGestionar}
         />
       )}
 
       <BomberoDetalleDialog bombero={detalle} onCerrar={() => setDetalle(null)} />
+
+      <Dialog open={eliminando !== null} onClose={() => setEliminando(null)} maxWidth="xs" fullWidth>
+        <DialogTitle className="font-bold!">Eliminar personal</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            "{eliminando?.nombre} {eliminando?.apellido}" se elimina del listado de personal.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="px-6! pb-4!">
+          <Button onClick={() => setEliminando(null)} color="inherit">
+            Cancelar
+          </Button>
+          <Button variant="contained" color="error" onClick={confirmarEliminar}>
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

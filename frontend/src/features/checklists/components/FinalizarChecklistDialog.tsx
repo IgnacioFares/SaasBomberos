@@ -78,7 +78,7 @@ const FinalizarChecklistDialog = ({
           </Typography>
           <Chip
             label={`${usuario?.bombero?.nombre ?? ''} ${usuario?.bombero?.apellido ?? ''}`}
-            sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600, alignSelf: 'flex-start' }}
+            sx={{ bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 600, alignSelf: 'flex-start' }}
           />
         </Box>
 

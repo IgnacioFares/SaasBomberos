@@ -4,6 +4,7 @@ import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded'
 import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
@@ -30,6 +31,7 @@ const iniciales = (nombre?: string, apellido?: string) =>
   `${nombre?.[0] ?? ''}${apellido?.[0] ?? ''}`.toUpperCase()
 
 const accesosRapidos = [
+  { to: '/partes/nuevo', label: 'Nuevo parte', icon: DescriptionRoundedIcon },
   { to: '/bomberos', label: 'Personal', icon: PeopleAltRoundedIcon },
   { to: '/movilidades', label: 'Movilidades', icon: DirectionsCarFilledRoundedIcon },
   { to: '/checklists', label: 'Checklists', icon: ChecklistRoundedIcon },
@@ -65,7 +67,7 @@ const DashboardPage = () => {
       <Paper
         elevation={0}
         className="rounded-2xl! overflow-hidden p-5 text-white sm:p-7"
-        sx={{ background: 'linear-gradient(120deg, #0B1C4A 0%, #1E3A8A 55%, #0D9488 130%)' }}
+        sx={{ background: 'linear-gradient(120deg, #450A0A 0%, #B91C1C 55%, #7F1D1D 130%)' }}
       >
         <Box className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <Box className="flex items-center gap-3 sm:gap-4">
@@ -88,7 +90,7 @@ const DashboardPage = () => {
               <Box className="mt-1 flex flex-wrap items-center gap-1.5">
                 {usuario?.bombero?.rango && (
                   <Chip
-                    icon={<ShieldRoundedIcon sx={{ color: '#5EEAD4!important', fontSize: 15 }} />}
+                    icon={<ShieldRoundedIcon sx={{ color: '#FCD34D!important', fontSize: 15 }} />}
                     label={usuario.bombero.rango}
                     size="small"
                     sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#E2E8F0', fontWeight: 600, height: 24 }}
@@ -98,7 +100,7 @@ const DashboardPage = () => {
                   <Chip
                     label="Administrador"
                     size="small"
-                    sx={{ bgcolor: 'rgba(94,234,212,0.2)', color: '#5EEAD4', fontWeight: 700, height: 24 }}
+                    sx={{ bgcolor: 'rgba(252,211,77,0.2)', color: '#FCD34D', fontWeight: 700, height: 24 }}
                   />
                 )}
               </Box>
@@ -107,13 +109,13 @@ const DashboardPage = () => {
 
           <Box className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 sm:flex-col sm:items-end sm:gap-1">
             <Box className="flex items-center gap-1.5 capitalize">
-              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: '#5EEAD4' }} />
+              <CalendarMonthRoundedIcon sx={{ fontSize: 16, color: '#FCD34D' }} />
               <Typography variant="body2" className="text-slate-100!">
                 {fecha}
               </Typography>
             </Box>
             <Box className="flex items-center gap-1.5">
-              <AccessTimeRoundedIcon sx={{ fontSize: 16, color: '#5EEAD4' }} />
+              <AccessTimeRoundedIcon sx={{ fontSize: 16, color: '#FCD34D' }} />
               <Typography variant="body1" className="font-bold! text-white! tabular-nums">
                 {hora}
               </Typography>
@@ -195,7 +197,7 @@ const DashboardPage = () => {
         <Paper elevation={0} className="rounded-2xl! flex flex-col border border-slate-200 p-4 sm:p-5">
           <Box className="mb-2 flex items-center justify-between gap-2">
             <Box className="flex items-center gap-2">
-              <HistoryRoundedIcon sx={{ color: '#1E3A8A' }} fontSize="small" />
+              <HistoryRoundedIcon sx={{ color: '#9F1239' }} fontSize="small" />
               <Typography variant="subtitle1" className="font-semibold!">
                 Últimos checklists
               </Typography>

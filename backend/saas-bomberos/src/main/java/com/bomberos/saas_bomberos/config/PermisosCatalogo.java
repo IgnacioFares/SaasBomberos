@@ -15,6 +15,8 @@ public final class PermisosCatalogo {
     public static final String GESTIONAR_INVENTARIO = "gestionar_inventario";
     public static final String MOVER_STOCK = "mover_stock";
     public static final String GESTIONAR_PERSONAL = "gestionar_personal";
+    public static final String GESTIONAR_AREAS_TRABAJO = "gestionar_areas_trabajo";
+    public static final String GESTIONAR_PARTES = "gestionar_partes";
 
     public static final List<PermisoDef> CATALOGO = List.of(
             new PermisoDef(GESTIONAR_MOVILIDADES, "Gestionar movilidades",
@@ -28,7 +30,11 @@ public final class PermisosCatalogo {
             new PermisoDef(MOVER_STOCK, "Operar stock y unidades",
                     "Mover y ajustar stock, agregar unidades y cambiar sus estados/ubicaciones"),
             new PermisoDef(GESTIONAR_PERSONAL, "Gestionar personal",
-                    "Dar de alta, editar y eliminar bomberos del cuartel")
+                    "Dar de alta, editar y eliminar bomberos del cuartel"),
+            new PermisoDef(GESTIONAR_AREAS_TRABAJO, "Gestionar áreas de trabajo",
+                    "Crear y editar áreas de trabajo, designar encargados e integrantes"),
+            new PermisoDef(GESTIONAR_PARTES, "Gestionar partes de intervención",
+                    "Crear, editar borradores y finalizar partes de intervención")
     );
 
     public static PermisoDef porNombre(String nombre) {

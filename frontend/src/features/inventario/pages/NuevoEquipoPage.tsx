@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Paper, Typography } from '@mui/material'
+import BotonVolver from '../../../components/BotonVolver'
 import EquipoForm from '../components/EquipoForm'
 import { createEquipo } from '../services/inventarioService'
 import { extraerMensajeError } from '../../../utils/http'
@@ -31,6 +32,7 @@ const NuevoEquipoPage = () => {
 
   return (
     <Box className="flex flex-col gap-6">
+      <BotonVolver to="/inventario" texto="Inventario" />
       <Box>
         <Typography variant="h5" className="font-bold!">
           Nuevo equipo

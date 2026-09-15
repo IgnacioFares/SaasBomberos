@@ -103,7 +103,7 @@ const FiltrosInventario = ({ filtros, onCambiar, categorias, ubicaciones, result
           label={categorias.find((c) => c.id === filtros.categoriaId)?.nombre}
           size="small"
           onDelete={() => set({ categoriaId: '' })}
-          sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
+          sx={{ bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 600 }}
         />
       )}
       {filtros.estado !== '' && (

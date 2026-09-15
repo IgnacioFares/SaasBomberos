@@ -21,8 +21,8 @@ const ChecklistCard = ({ template, onEliminar, puedeGestionar }: Props) => (
   >
     <Box className="flex items-start justify-between gap-2">
       <Box className="flex min-w-0 items-center gap-3">
-        <Box className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EFF4FF]">
-          <ChecklistRoundedIcon sx={{ color: '#1E3A8A' }} />
+        <Box className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFE4E6]">
+          <ChecklistRoundedIcon sx={{ color: '#9F1239' }} />
         </Box>
         <Box className="min-w-0">
           <Typography variant="subtitle1" className="truncate font-semibold! leading-tight!">

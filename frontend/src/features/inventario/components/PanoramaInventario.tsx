@@ -33,7 +33,7 @@ const COLOR_ESTADO_CHART: Record<Exclude<EquipoEstado, 'DADO_DE_BAJA'>, string> 
 }
 const ESTADOS_CHART = Object.keys(COLOR_ESTADO_CHART) as (keyof typeof COLOR_ESTADO_CHART)[]
 
-const AZUL_SECUENCIAL = '#1E3A8A'
+const ROSA_SECUENCIAL = '#9F1239'
 const TEAL_SECUENCIAL = '#0D9488'
 
 const estiloTooltip = {
@@ -217,7 +217,7 @@ const PanoramaInventario = ({ equipos }: Props) => {
       </Paper>
 
       <Box className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {graficoBarras('Elementos por categoría', datos.categorias, AZUL_SECUENCIAL)}
+        {graficoBarras('Elementos por categoría', datos.categorias, ROSA_SECUENCIAL)}
         {graficoBarras('Elementos por ubicación', datos.ubicaciones, TEAL_SECUENCIAL)}
       </Box>
 

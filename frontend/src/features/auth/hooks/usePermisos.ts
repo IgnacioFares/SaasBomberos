@@ -8,6 +8,8 @@ export const PERMISOS = {
   GESTIONAR_INVENTARIO: 'gestionar_inventario',
   MOVER_STOCK: 'mover_stock',
   GESTIONAR_PERSONAL: 'gestionar_personal',
+  GESTIONAR_AREAS_TRABAJO: 'gestionar_areas_trabajo',
+  GESTIONAR_PARTES: 'gestionar_partes',
 } as const
 
 // Oculta acciones para las que el usuario no tiene permiso. El gate

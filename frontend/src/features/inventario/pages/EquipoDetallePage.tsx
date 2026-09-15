@@ -21,7 +21,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import EditRoundedIcon from '@mui/icons-material/EditRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
@@ -33,6 +32,7 @@ import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded'
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded'
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import EventRoundedIcon from '@mui/icons-material/EventRounded'
+import BotonVolver from '../../../components/BotonVolver'
 import useEquipoDetalle from '../hooks/useEquipoDetalle'
 import useUbicaciones from '../hooks/useUbicaciones'
 import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
@@ -124,14 +124,7 @@ const EquipoDetallePage = () => {
 
   return (
     <Box className="flex flex-col gap-4">
-      <Box className="flex items-center gap-2">
-        <IconButton onClick={() => navigate('/inventario')} aria-label="Volver al inventario">
-          <ArrowBackRoundedIcon />
-        </IconButton>
-        <Typography variant="body2" color="text.secondary">
-          Inventario / {equipo.categoriaNombre}
-        </Typography>
-      </Box>
+      <BotonVolver to="/inventario" texto={`Inventario / ${equipo.categoriaNombre}`} />
 
       {mensajeExito && (
         <Alert severity="success" onClose={() => setMensajeExito(null)}>
@@ -168,7 +161,7 @@ const EquipoDetallePage = () => {
                     : equipo.categoriaNombre
                 }
                 size="small"
-                sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
+                sx={{ bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 600 }}
               />
               {equipo.estadoVencimiento !== 'SIN_VENCIMIENTO' && (
                 <Chip
@@ -396,7 +389,7 @@ const EquipoDetallePage = () => {
       {/* Historial */}
       <Paper elevation={0} className="rounded-2xl! border border-slate-200 p-4 sm:p-5">
         <Box className="mb-3 flex items-center gap-2">
-          <HistoryRoundedIcon sx={{ color: '#1E3A8A' }} />
+          <HistoryRoundedIcon sx={{ color: '#9F1239' }} />
           <Typography variant="subtitle1" className="font-semibold!">
             Historial de movimientos
           </Typography>

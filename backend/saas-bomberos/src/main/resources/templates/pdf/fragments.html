@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"/><title>Fragmentos PDF</title></head>
+<body>
+
+<!-- Este archivo solo se referencia con th:replace desde otras plantillas
+     (nunca se procesa entero), asi que definir el fragmento aca evita que
+     se renderice también "de paso" como bloque normal de la página. -->
+<table class="fila-campos" th:fragment="superficieAfectada">
+  <tr>
+    <td style="width:25%;"><span class="check" th:text="${p.superficieAfectada.noEvacuo} ? '[X] No se evacuó' : '[ ] No se evacuó'"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Kilómetros</span><span class="valor-campo" th:text="${p.superficieAfectada.kilometros}"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Metros</span><span class="valor-campo" th:text="${p.superficieAfectada.metros}"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Hectáreas</span><span class="valor-campo" th:text="${p.superficieAfectada.hectareas}"></span></td>
+  </tr>
+  <tr>
+    <td colspan="4"><span class="etiqueta-campo">Detalle</span><span class="valor-campo" th:text="${p.superficieAfectada.detalle}"></span></td>
+  </tr>
+</table>
+
+</body>
+</html>

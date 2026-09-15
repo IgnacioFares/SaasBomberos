@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   IconButton,
   Paper,
@@ -27,6 +28,7 @@ const UbicacionesAdmin = () => {
   const [nombreNueva, setNombreNueva] = useState('')
   const [editando, setEditando] = useState<UbicacionEquipo | null>(null)
   const [nombreEdicion, setNombreEdicion] = useState('')
+  const [eliminando, setEliminando] = useState<UbicacionEquipo | null>(null)
 
   const handleAgregar = async () => {
     if (!nombreNueva.trim()) return
@@ -38,6 +40,11 @@ const UbicacionesAdmin = () => {
     if (!editando || !nombreEdicion.trim()) return
     const ok = await editar(editando.id, nombreEdicion.trim())
     if (ok) setEditando(null)
+  }
+
+  const confirmarEliminar = async () => {
+    if (eliminando) await eliminar(eliminando.id)
+    setEliminando(null)
   }
 
   return (
@@ -107,7 +114,7 @@ const UbicacionesAdmin = () => {
                   size="small"
                   color="error"
                   aria-label={`Eliminar ${ubicacion.nombre}`}
-                  onClick={() => eliminar(ubicacion.id)}
+                  onClick={() => setEliminando(ubicacion)}
                 >
                   <DeleteOutlineRoundedIcon fontSize="small" />
                 </IconButton>
@@ -141,6 +148,24 @@ const UbicacionesAdmin = () => {
           </Button>
           <Button variant="contained" onClick={handleGuardarEdicion} disabled={!nombreEdicion.trim()}>
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={eliminando !== null} onClose={() => setEliminando(null)} maxWidth="xs" fullWidth>
+        <DialogTitle className="font-bold!">Eliminar ubicación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            "{eliminando?.nombre}" se elimina. El equipamiento que la tenía asignada queda sin
+            ubicación.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="px-6! pb-4!">
+          <Button onClick={() => setEliminando(null)} color="inherit">
+            Cancelar
+          </Button>
+          <Button variant="contained" color="error" onClick={confirmarEliminar}>
+            Eliminar
           </Button>
         </DialogActions>
       </Dialog>

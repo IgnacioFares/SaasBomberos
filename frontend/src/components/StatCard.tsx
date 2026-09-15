@@ -4,7 +4,7 @@ import { Box, Chip, CircularProgress, Paper, Typography } from '@mui/material'
 type Color = 'blue' | 'teal' | 'amber' | 'violet' | 'green' | 'orange' | 'red' | 'slate'
 
 const paletas: Record<Color, { bg: string; icon: string; text: string }> = {
-  blue: { bg: '#EFF4FF', icon: '#1E3A8A', text: '#1E3A8A' },
+  blue: { bg: '#FFE4E6', icon: '#9F1239', text: '#9F1239' },
   teal: { bg: '#ECFDF9', icon: '#0D9488', text: '#0F766E' },
   amber: { bg: '#FFF7ED', icon: '#B45309', text: '#B45309' },
   violet: { bg: '#F3F0FF', icon: '#6D28D9', text: '#6D28D9' },

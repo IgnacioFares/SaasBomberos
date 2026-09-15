@@ -28,6 +28,7 @@ const MovilidadesPage = () => {
   const [dialogAbierto, setDialogAbierto] = useState(false)
   const [editando, setEditando] = useState<Movilidad | null>(null)
   const [eliminando, setEliminando] = useState<Movilidad | null>(null)
+  const [cambiandoServicio, setCambiandoServicio] = useState<Movilidad | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [mensajeExito, setMensajeExito] = useState<string | null>(null)
 
@@ -49,14 +50,17 @@ const MovilidadesPage = () => {
     }
   }
 
-  const handleToggleServicio = async (movilidad: Movilidad) => {
-    if (!movilidad.id) return
-    const ok = await actualizar(movilidad.id, { ...movilidad, enServicio: !movilidad.enServicio })
-    if (ok) {
-      setMensajeExito(
-        `"${movilidad.nombre}" ${movilidad.enServicio ? 'pasó a fuera de servicio' : 'volvió a servicio'}.`
-      )
+  const confirmarToggleServicio = async () => {
+    const movilidad = cambiandoServicio
+    if (movilidad?.id) {
+      const ok = await actualizar(movilidad.id, { ...movilidad, enServicio: !movilidad.enServicio })
+      if (ok) {
+        setMensajeExito(
+          `"${movilidad.nombre}" ${movilidad.enServicio ? 'pasó a fuera de servicio' : 'volvió a servicio'}.`
+        )
+      }
     }
+    setCambiandoServicio(null)
   }
 
   const confirmarEliminar = async () => {
@@ -147,7 +151,7 @@ const MovilidadesPage = () => {
                 setDialogAbierto(true)
               }}
               onEliminar={setEliminando}
-              onToggleServicio={handleToggleServicio}
+              onToggleServicio={setCambiandoServicio}
             />
           ))}
         </Box>
@@ -179,6 +183,27 @@ const MovilidadesPage = () => {
           </Button>
           <Button variant="contained" color="error" onClick={confirmarEliminar}>
             Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={cambiandoServicio !== null} onClose={() => setCambiandoServicio(null)} maxWidth="xs" fullWidth>
+        <DialogTitle className="font-bold!">
+          {cambiandoServicio?.enServicio ? 'Pasar a fuera de servicio' : 'Poner en servicio'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {cambiandoServicio?.enServicio
+              ? `"${cambiandoServicio?.nombre}" deja de estar disponible para asignarle checklists de servicio.`
+              : `"${cambiandoServicio?.nombre}" vuelve a estar disponible para el servicio.`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions className="px-6! pb-4!">
+          <Button onClick={() => setCambiandoServicio(null)} color="inherit">
+            Cancelar
+          </Button>
+          <Button variant="contained" onClick={confirmarToggleServicio}>
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>

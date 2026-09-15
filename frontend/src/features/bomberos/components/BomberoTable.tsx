@@ -14,7 +14,7 @@ import type { Bombero } from '../../../types'
 
 interface Props {
   bomberos: Bombero[]
-  onEliminar: (id: number) => void
+  onEliminar: (bombero: Bombero) => void
   // Click en la tarjeta → ficha completa del bombero.
   onVer: (bombero: Bombero) => void
   // Sin el permiso "gestionar_personal" se oculta el botón de eliminar.
@@ -47,7 +47,7 @@ const BomberoTable = ({ bomberos, onEliminar, onVer, puedeGestionar }: Props) =>
         >
           <Box className="flex items-start justify-between gap-2">
             <Box className="flex items-center gap-3">
-              <Avatar sx={{ bgcolor: '#1E3A8A', width: 48, height: 48, fontWeight: 700 }}>
+              <Avatar sx={{ bgcolor: '#9F1239', width: 48, height: 48, fontWeight: 700 }}>
                 {iniciales(bombero.nombre, bombero.apellido)}
               </Avatar>
               <Box className="min-w-0">
@@ -70,7 +70,7 @@ const BomberoTable = ({ bomberos, onEliminar, onVer, puedeGestionar }: Props) =>
                   onClick={(e) => {
                     // Que el borrar no abra la ficha de detalle.
                     e.stopPropagation()
-                    if (bombero.id) onEliminar(bombero.id)
+                    onEliminar(bombero)
                   }}
                 >
                   <DeleteOutlineRoundedIcon fontSize="small" />
@@ -82,10 +82,10 @@ const BomberoTable = ({ bomberos, onEliminar, onVer, puedeGestionar }: Props) =>
           <Box className="flex flex-wrap items-center gap-2">
             {bombero.rango && (
               <Chip
-                icon={<ShieldRoundedIcon sx={{ color: '#1E3A8A!important' }} />}
+                icon={<ShieldRoundedIcon sx={{ color: '#9F1239!important' }} />}
                 label={bombero.rango}
                 size="small"
-                sx={{ bgcolor: '#EFF4FF', color: '#1E3A8A', fontWeight: 600 }}
+                sx={{ bgcolor: '#FFE4E6', color: '#9F1239', fontWeight: 600 }}
               />
             )}
             {bombero.grupoSanguineo && (

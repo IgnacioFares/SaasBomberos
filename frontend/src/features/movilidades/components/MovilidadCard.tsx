@@ -39,10 +39,13 @@ const MovilidadCard = ({ movilidad, puedeGestionar, onEditar, onEliminar, onTogg
             <FireTruckRoundedIcon sx={{ color: enServicio ? '#15803D' : '#B91C1C' }} />
           </Box>
           <Box className="min-w-0">
-            <Typography variant="h6" className="truncate font-bold! leading-tight!">
+            {/* Color fijo, no el de texto del tema: la franja de fondo es
+                siempre clara (gradiente verde/rojo pastel) tanto en modo
+                claro como oscuro, así que el texto también debe quedar fijo. */}
+            <Typography variant="h6" className="truncate font-bold! leading-tight!" sx={{ color: '#1C1917' }}>
               {movilidad.nombre}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: '#57534E' }}>
               {[movilidad.marca, movilidad.modelo].filter(Boolean).join(' ') || 'Sin marca/modelo'}
             </Typography>
           </Box>

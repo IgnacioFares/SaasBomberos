@@ -24,6 +24,7 @@ import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded'
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined'
 import DrawRoundedIcon from '@mui/icons-material/DrawRounded'
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
+import BotonVolver from '../../../components/BotonVolver'
 import useRegistroDetalle from '../hooks/useRegistroDetalle'
 import usePermisos, { PERMISOS } from '../../auth/hooks/usePermisos'
 import ResumenChips from '../components/ResumenChips'
@@ -98,6 +99,7 @@ const RegistroDetallePage = () => {
 
   return (
     <Box className="flex flex-col gap-4 pb-24">
+      <BotonVolver to="/checklists" texto="Checklists" />
       <Paper elevation={0} className="rounded-2xl! flex flex-col gap-3 border border-slate-200 p-4 sm:p-6">
         <Box className="flex flex-wrap items-start justify-between gap-2">
           <Box className="min-w-0">

@@ -35,7 +35,7 @@ const AuthLayout = ({ titulo, subtitulo, children, footer, ancho = 'sm' }: Props
         }}
       >
         <Box className="flex items-center gap-2">
-          <FireTruckRoundedIcon sx={{ fontSize: 28, color: '#5EEAD4' }} />
+          <FireTruckRoundedIcon sx={{ fontSize: 28, color: '#FCD34D' }} />
         </Box>
 
         <Box className="mt-10">
@@ -51,7 +51,7 @@ const AuthLayout = ({ titulo, subtitulo, children, footer, ancho = 'sm' }: Props
             {bullets.map(({ icon: Icon, texto }) => (
               <Box key={texto} className="flex items-center gap-3">
                 <Box className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-                  <Icon fontSize="small" sx={{ color: '#5EEAD4' }} />
+                  <Icon fontSize="small" sx={{ color: '#FCD34D' }} />
                 </Box>
                 <Typography variant="body2" className="text-slate-100!">
                   {texto}

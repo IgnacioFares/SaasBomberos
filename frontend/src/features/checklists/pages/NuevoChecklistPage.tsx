@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Box, Paper, Typography } from '@mui/material'
+import BotonVolver from '../../../components/BotonVolver'
 import useChecklistTemplates from '../hooks/useChecklistTemplates'
 import ChecklistTemplateBuilder from '../components/ChecklistTemplateBuilder'
 import type { ChecklistTemplateRequest } from '../types'
@@ -21,6 +22,7 @@ const NuevoChecklistPage = () => {
 
   return (
     <Box className="flex flex-col gap-6">
+      <BotonVolver to="/checklists" texto="Checklists" />
       <Box>
         <Typography variant="h5" className="font-bold!">
           Nuevo checklist

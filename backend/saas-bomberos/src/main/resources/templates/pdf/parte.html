@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<title>Parte</title>
+<style>
+  @page { size: A4; margin: 1.6cm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 9.5px; color: #111; }
+  table { width: 100%; border-collapse: collapse; }
+  .header-table td { border: 1px solid #333; padding: 4px 8px; vertical-align: top; }
+  .titulo-principal { font-size: 13px; font-weight: bold; }
+  .titulo-parte { font-size: 11px; font-weight: bold; margin-top: 2px; }
+  .meta-table td { border: none; padding: 1px 4px; font-size: 8.5px; }
+  .meta-table .etiqueta { font-weight: bold; text-align: right; width: 55%; }
+  h2.seccion { font-size: 10.5px; background: #e5e7eb; padding: 4px 6px; margin: 10px 0 4px 0; border-left: 3px solid #1E3A8A; }
+  .fila-campos { width: 100%; margin-bottom: 4px; }
+  .fila-campos td { padding: 2px 6px; vertical-align: top; }
+  .etiqueta-campo { font-weight: bold; font-size: 8.5px; color: #334155; }
+  .valor-campo { border-bottom: 1px solid #94a3b8; min-height: 11px; display: block; }
+  .check { margin-right: 10px; }
+  .tabla-datos { margin-top: 4px; margin-bottom: 6px; }
+  .tabla-datos th, .tabla-datos td { border: 1px solid #94a3b8; padding: 3px 5px; font-size: 8.5px; text-align: left; }
+  .tabla-datos th { background: #f1f5f9; }
+  .texto-libre { border: 1px solid #cbd5e1; padding: 6px; min-height: 24px; white-space: pre-wrap; margin-top: 3px; }
+  .pie { margin-top: 22px; }
+  .pie-table td { border: none; padding: 0 10px; text-align: center; vertical-align: bottom; width: 33%; }
+  .linea-firma { border-top: 1px solid #111; margin-top: 26px; padding-top: 3px; font-size: 8.5px; }
+</style>
+</head>
+<body>
+
+<table class="header-table">
+  <tr>
+    <td style="width: 65%;">
+      <div class="titulo-principal">PARTE DE INTERVENCIÓN Y PROCEDIMIENTOS</div>
+      <div class="titulo-parte" th:text="${p.tituloParte}">TÍTULO DEL PARTE</div>
+      <div th:text="${nombreCuerpo}" style="font-size: 8.5px; margin-top: 2px;">Cuerpo de Bomberos</div>
+    </td>
+    <td style="width: 35%;">
+      <table class="meta-table">
+        <tr><td class="etiqueta">Código:</td><td th:text="${p.codigoFormulario}"></td></tr>
+        <tr><td class="etiqueta">Revisión:</td><td>00</td></tr>
+        <tr><td class="etiqueta">Página:</td><td>1 de 1</td></tr>
+        <tr><td class="etiqueta">Fecha de registro:</td><td th:text="${creadoEnFormateado}"></td></tr>
+        <tr><td class="etiqueta">Generado el:</td><td th:text="${fechaGenerado}"></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<h2 class="seccion">Datos generales</h2>
+<table class="fila-campos">
+  <tr>
+    <td style="width:25%;"><span class="etiqueta-campo">N° Parte</span><span class="valor-campo" th:text="${p.numeroParte}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">N° Ruba</span><span class="valor-campo" th:text="${p.numeroRuba}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Fecha del hecho</span><span class="valor-campo" th:text="${fechaHechoFormateada}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Cuerpo participante</span><span class="valor-campo" th:text="${p.cuerpoParticipante}"></span></td>
+  </tr>
+</table>
+
+<!-- Ampliatorio: común a Accidente, Incendio Industrial/Forestal/Vehicular, Capacitación, Rescate y Materiales Peligrosos -->
+<th:block th:if="${p.ampliatorio != null and !#strings.isEmpty(p.ampliatorio)}">
+  <h2 class="seccion">Ampliatorio</h2>
+  <div class="texto-libre" th:text="${p.ampliatorio}"></div>
+</th:block>
+
+<!-- Falsa alarma: párrafo autogenerado en vez de ampliatorio libre -->
+<th:block th:if="${p.tipoParte == 'SERVICIOS_FALSA_ALARMA'}">
+  <h2 class="seccion">Detalle</h2>
+  <div class="texto-libre" th:text="${p.textoFalsaAlarmaGenerado}"></div>
+</th:block>
+
+<h2 class="seccion">Localización</h2>
+<table class="fila-campos">
+  <tr>
+    <td style="width:25%;"><span class="etiqueta-campo">Localidad</span><span class="valor-campo" th:text="${p.localizacion.localidad}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Distrito</span><span class="valor-campo" th:text="${p.localizacion.distrito}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Calle/Ruta</span><span class="valor-campo" th:text="${p.localizacion.calleRuta}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">N°/Km</span><span class="valor-campo" th:text="${p.localizacion.numeroKm}"></span></td>
+  </tr>
+  <tr>
+    <td colspan="2"><span class="etiqueta-campo">Entre calles</span><span class="valor-campo" th:text="${p.localizacion.entreCalles}"></span></td>
+    <td colspan="2">
+      <span class="etiqueta-campo">Tipo de zona</span>
+      <span class="check" th:text="${p.localizacion.tipoZona == 'URBANA'} ? '[X] Urbana' : '[ ] Urbana'"></span>
+      <span class="check" th:text="${p.localizacion.tipoZona == 'RURAL'} ? '[X] Rural' : '[ ] Rural'"></span>
+    </td>
+  </tr>
+</table>
+
+<h2 class="seccion">Datos del solicitante</h2>
+<table class="fila-campos">
+  <tr>
+    <td style="width:25%;"><span class="etiqueta-campo">Nombre</span><span class="valor-campo" th:text="${p.solicitante.nombre}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Apellido</span><span class="valor-campo" th:text="${p.solicitante.apellido}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">DNI</span><span class="valor-campo" th:text="${p.solicitante.dni}"></span></td>
+    <td style="width:25%;"><span class="etiqueta-campo">Teléfono</span><span class="valor-campo" th:text="${p.solicitante.telefono}"></span></td>
+  </tr>
+</table>
+
+<!-- ===================== ACCIDENTE ===================== -->
+<th:block th:if="${p.tipoParte == 'ACCIDENTE'}">
+  <h2 class="seccion">Características del lugar</h2>
+  <span class="check" th:text="${p.datosAccidente.climaLluvia} ? '[X] Lluvia' : '[ ] Lluvia'"></span>
+  <span class="check" th:text="${p.datosAccidente.climaNeblina} ? '[X] Neblina' : '[ ] Neblina'"></span>
+  <span class="check" th:text="${p.datosAccidente.climaSoleado} ? '[X] Soleado' : '[ ] Soleado'"></span>
+  <span class="check" th:text="${p.datosAccidente.climaVentoso} ? '[X] Ventoso' : '[ ] Ventoso'"></span>
+  <span class="check" th:text="${p.datosAccidente.climaNoche} ? '[X] Noche' : '[ ] Noche'"></span>
+  <span class="check" th:text="${p.datosAccidente.climaOtro} ? '[X] Otro: ' + ${p.datosAccidente.climaOtroDetalle} : '[ ] Otro'"></span>
+
+  <h2 class="seccion">Causas del accidente</h2>
+  <span class="check" th:text="${p.datosAccidente.causaChoque} ? '[X] Choque (' + ${p.datosAccidente.tipoChoque} + ')' : '[ ] Choque'"></span>
+  <span class="check" th:text="${p.datosAccidente.causaDespiste} ? '[X] Despiste' : '[ ] Despiste'"></span>
+  <span class="check" th:text="${p.datosAccidente.causaDerrame} ? '[X] Derrame (' + ${p.datosAccidente.tipoDerrame} + ')' : '[ ] Derrame'"></span>
+  <span class="check" th:text="${p.datosAccidente.causaVuelco} ? '[X] Vuelco' : '[ ] Vuelco'"></span>
+</th:block>
+
+<!-- ===================== INCENDIO INDUSTRIAL / FORESTAL ===================== -->
+<th:block th:if="${p.tipoParte == 'INCENDIO_INDUSTRIAL' or p.tipoParte == 'INCENDIO_FORESTAL'}">
+  <h2 class="seccion" th:text="${p.tipoParte == 'INCENDIO_FORESTAL'} ? 'Subtipo y causa' : 'Subtipo y causa del incendio industrial'"></h2>
+  <table class="fila-campos">
+    <tr>
+      <td style="width:50%;"><span class="etiqueta-campo">Subtipo</span>
+        <span class="valor-campo" th:text="${p.datosIncendioIndustrial.subtipoIndustrial} + (${p.datosIncendioIndustrial.subtipoIndustrial == 'OTRO'} ? (' - ' + ${p.datosIncendioIndustrial.subtipoIndustrialOtroDetalle}) : '')"></span>
+      </td>
+      <td style="width:50%;"><span class="etiqueta-campo">Causa del incendio</span><span class="valor-campo" th:text="${p.datosIncendioIndustrial.causaIncendio}"></span></td>
+    </tr>
+  </table>
+  <th:block th:if="${p.tipoParte == 'INCENDIO_FORESTAL'}">
+    <h2 class="seccion">Característica del lugar</h2>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarCampo} ? '[X] Campo' : '[ ] Campo'"></span>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarPastizal} ? '[X] Pastizal' : '[ ] Pastizal'"></span>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarArbustalMatorral} ? '[X] Arbustal o matorral' : '[ ] Arbustal o matorral'"></span>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarInterfase} ? '[X] Interfase' : '[ ] Interfase'"></span>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarBasural} ? '[X] Basural' : '[ ] Basural'"></span>
+    <span class="check" th:text="${p.datosIncendioForestalLugar.lugarOtro} ? '[X] Otro: ' + ${p.datosIncendioForestalLugar.lugarOtroDetalle} : '[ ] Otro'"></span>
+  </th:block>
+  <h2 class="seccion">Datos de la superficie afectada</h2>
+  <div th:replace="~{pdf/fragments :: superficieAfectada}"></div>
+</th:block>
+
+<!-- ===================== INCENDIO VIVIENDA ===================== -->
+<th:block th:if="${p.tipoParte == 'INCENDIO_VIVIENDA'}">
+  <h2 class="seccion">Datos del seguro</h2>
+  <table class="fila-campos">
+    <tr>
+      <td style="width:34%;"><span class="etiqueta-campo">Compañía</span><span class="valor-campo" th:text="${p.datosIncendioVivienda.seguroCompania}"></span></td>
+      <td style="width:33%;"><span class="etiqueta-campo">N° de póliza</span><span class="valor-campo" th:text="${p.datosIncendioVivienda.seguroPoliza}"></span></td>
+      <td style="width:33%;"><span class="etiqueta-campo">Vencimiento</span><span class="valor-campo" th:text="${p.datosIncendioVivienda.seguroVencimiento}"></span></td>
+    </tr>
+  </table>
+  <h2 class="seccion">Datos de la superficie afectada</h2>
+  <div th:replace="~{pdf/fragments :: superficieAfectada}"></div>
+  <h2 class="seccion">Tipo de lugar / techo / abertura</h2>
+  <p>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarCasa} ? '[X] Casa' : '[ ] Casa'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarDepto} ? '[X] Depto' : '[ ] Depto'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarCasilla} ? '[X] Casilla' : '[ ] Casilla'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarRancho} ? '[X] Rancho' : '[ ] Rancho'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarMultifuncional} ? '[X] Multifuncional' : '[ ] Multifuncional'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.tipoLugarOtro} ? '[X] Otro: ' + ${p.datosIncendioVivienda.tipoLugarOtroDetalle} : '[ ] Otro'"></span>
+  </p>
+  <p>
+    <span class="check" th:text="${p.datosIncendioVivienda.techoMaderaPaja} ? '[X] Madera-paja' : '[ ] Madera-paja'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.techoYeso} ? '[X] Yeso' : '[ ] Yeso'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.techoTejas} ? '[X] Tejas' : '[ ] Tejas'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.techoChapaMetalica} ? '[X] Chapa metálica' : '[ ] Chapa metálica'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.techoChapaCarton} ? '[X] Chapa cartón' : '[ ] Chapa cartón'"></span>
+  </p>
+  <p>
+    <span class="check" th:text="${p.datosIncendioVivienda.aberturaMadera} ? '[X] Madera' : '[ ] Madera'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.aberturaAceroHierro} ? '[X] Acero-Hierro' : '[ ] Acero-Hierro'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.aberturaAluminio} ? '[X] Aluminio' : '[ ] Aluminio'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.aberturaPlastico} ? '[X] Plástico' : '[ ] Plástico'"></span>
+    <span class="check" th:text="${p.datosIncendioVivienda.aberturaOtro} ? '[X] Otro: ' + ${p.datosIncendioVivienda.aberturaOtroDetalle} : '[ ] Otro'"></span>
+  </p>
+</th:block>
+
+<!-- ===================== INCENDIO VEHICULAR ===================== -->
+<th:block th:if="${p.tipoParte == 'INCENDIO_VEHICULAR'}">
+  <h2 class="seccion">Datos de la superficie afectada</h2>
+  <div th:replace="~{pdf/fragments :: superficieAfectada}"></div>
+</th:block>
+
+<!-- ===================== VEHÍCULOS (Accidente / Incendio Vehicular) ===================== -->
+<th:block th:if="${p.tipoParte == 'ACCIDENTE' or p.tipoParte == 'INCENDIO_VEHICULAR'}">
+  <h2 class="seccion" th:text="${p.tipoParte == 'ACCIDENTE'} ? 'Vehículos intervinientes' : 'Vehículos afectados'"></h2>
+  <table class="tabla-datos">
+    <thead><tr><th>Tipo</th><th>Marca</th><th>Dominio</th><th>Modelo</th><th>Año</th><th>Aseguradora</th><th>Póliza</th></tr></thead>
+    <tbody>
+      <tr th:each="v : ${p.vehiculos}">
+        <td th:text="${v.tipo}"></td><td th:text="${v.marca}"></td><td th:text="${v.dominio}"></td>
+        <td th:text="${v.modelo}"></td><td th:text="${v.anio}"></td><td th:text="${v.aseguradora}"></td><td th:text="${v.poliza}"></td>
+      </tr>
+    </tbody>
+  </table>
+</th:block>
+
+<!-- ===================== CAPACITACIÓN ===================== -->
+<th:block th:if="${p.tipoParte == 'SERVICIOS_ESPECIALES_CAPACITACION'}">
+  <h2 class="seccion">Datos de la capacitación</h2>
+  <table class="fila-campos">
+    <tr>
+      <td style="width:50%;"><span class="etiqueta-campo">Nivel</span>
+        <span class="valor-campo" th:text="${p.datosCapacitacion.nivelCapacitacion} + (${p.datosCapacitacion.nivelCapacitacion == 'OTRA'} ? (' - ' + ${p.datosCapacitacion.nivelCapacitacionOtroDetalle}) : '')"></span>
+      </td>
+      <td style="width:25%;"><span class="etiqueta-campo">Días</span><span class="valor-campo" th:text="${p.datosCapacitacion.diasCapacitacion}"></span></td>
+      <td style="width:25%;"><span class="etiqueta-campo">Horas</span><span class="valor-campo" th:text="${p.datosCapacitacion.horasCapacitacion}"></span></td>
+    </tr>
+  </table>
+  <p><span class="etiqueta-campo">Tipo de capacitación:</span></p>
+  <p>
+    <span class="check" th:text="${p.datosCapacitacion.tipoIncendioEstructural} ? '[X] Incendio Estructural' : '[ ] Incendio Estructural'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoIncendioForestal} ? '[X] Incendio Forestal' : '[ ] Incendio Forestal'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoUsarBrec} ? '[X] USAR/BREC' : '[ ] USAR/BREC'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoGrimpRtc} ? '[X] GRIMP/RTC' : '[ ] GRIMP/RTC'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoMatPel} ? '[X] MAT-PEL' : '[ ] MAT-PEL'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoPsicologiaEmergencia} ? '[X] Psicología de la Emergencia' : '[ ] Psicología de la Emergencia'"></span>
+  </p>
+  <p>
+    <span class="check" th:text="${p.datosCapacitacion.tipoRescateAcuatico} ? '[X] Rescate Acuático' : '[ ] Rescate Acuático'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoRescateVehicular} ? '[X] Rescate Vehicular' : '[ ] Rescate Vehicular'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoSocorrismo} ? '[X] Socorrismo' : '[ ] Socorrismo'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoEscuelaCadetes} ? '[X] Escuela de Cadetes' : '[ ] Escuela de Cadetes'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoComandoIncidente} ? '[X] Comando de Incidente' : '[ ] Comando de Incidente'"></span>
+    <span class="check" th:text="${p.datosCapacitacion.tipoOtra} ? '[X] Otra: ' + ${p.datosCapacitacion.tipoOtraDetalle} : '[ ] Otra'"></span>
+  </p>
+  <div class="texto-libre" th:if="${p.datosCapacitacion.detalleLibre != null}" th:text="${p.datosCapacitacion.detalleLibre}"></div>
+</th:block>
+
+<!-- ===================== RESCATE ===================== -->
+<th:block th:if="${p.tipoParte == 'RESCATE'}">
+  <h2 class="seccion">Subtipo y características del lugar</h2>
+  <span class="etiqueta-campo">Subtipo: </span>
+  <span th:text="${p.datosRescate.subtipo} + (${p.datosRescate.subtipo == 'OTRO'} ? (' - ' + ${p.datosRescate.subtipoOtroDetalle}) : '')"></span>
+  <p>
+    <span class="check" th:text="${p.datosRescate.lugarCasas} ? '[X] Casas' : '[ ] Casas'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarEdificio} ? '[X] Edificio' : '[ ] Edificio'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarArbol} ? '[X] Árbol' : '[ ] Árbol'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarRios} ? '[X] Ríos' : '[ ] Ríos'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarPileta} ? '[X] Pileta' : '[ ] Pileta'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarLagos} ? '[X] Lagos' : '[ ] Lagos'"></span>
+    <span class="check" th:text="${p.datosRescate.lugarOtro} ? '[X] Otro: ' + ${p.datosRescate.lugarOtroDetalle} : '[ ] Otro'"></span>
+  </p>
+</th:block>
+
+<!-- ===================== MATERIALES PELIGROSOS ===================== -->
+<th:block th:if="${p.tipoParte == 'MATERIALES_PELIGROSOS'}">
+  <h2 class="seccion">Datos de la superficie afectada y sustancias</h2>
+  <div th:replace="~{pdf/fragments :: superficieAfectada}"></div>
+  <table class="fila-campos">
+    <tr><td><span class="etiqueta-campo">Sustancias involucradas</span><span class="valor-campo" th:text="${p.datosMaterialesPeligrosos.sustanciasInvolucradas}"></span></td></tr>
+  </table>
+  <h2 class="seccion">Acciones sobre los materiales</h2>
+  <p>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accMatQuemaControlada} ? '[X] Quema controlada' : '[ ] Quema controlada'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accMatVenteo} ? '[X] Venteo' : '[ ] Venteo'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accMatDilucionVapores} ? '[X] Dilución de vapores' : '[ ] Dilución de vapores'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accMatTrasvase} ? '[X] Trasvase' : '[ ] Trasvase'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accMatOtra} ? '[X] Otra: ' + ${p.datosMaterialesPeligrosos.accMatOtraDetalle} : '[ ] Otra'"></span>
+  </p>
+  <h2 class="seccion">Acciones sobre las personas</h2>
+  <p>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accPersEvacuacion} ? '[X] Evacuación' : '[ ] Evacuación'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accPersDescontaminacion} ? '[X] Descontaminación' : '[ ] Descontaminación'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accPersConfinamiento} ? '[X] Confinamiento' : '[ ] Confinamiento'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accPersSinAccion} ? '[X] Sin acción' : '[ ] Sin acción'"></span>
+    <span class="check" th:text="${p.datosMaterialesPeligrosos.accPersOtra} ? '[X] Otra: ' + ${p.datosMaterialesPeligrosos.accPersOtraDetalle} : '[ ] Otra'"></span>
+  </p>
+  <th:block th:if="${p.datosMaterialesPeligrosos.tipoEvento == 'EXPLOSION'}">
+    <h2 class="seccion">Situación (evento: explosión)</h2>
+    <span class="etiqueta-campo">¿Qué ocurrió primero? </span><span th:text="${p.datosMaterialesPeligrosos.situacionQueOcurrioPrimero}"></span>
+  </th:block>
+</th:block>
+
+<!-- ===================== SERVICIOS ESPECIALES ===================== -->
+<th:block th:if="${p.tipoParte == 'SERVICIOS_ESPECIALES'}">
+  <h2 class="seccion" th:text="'Información del servicio (' + ${p.datosServiciosEspeciales.subtipo} + ')'"></h2>
+  <th:block th:if="${p.datosServiciosEspeciales.subtipo == 'SERVICIO'}">
+    <span class="check" th:text="${p.datosServiciosEspeciales.servOtrasFuerzas} ? '[X] Otras fuerzas' : '[ ] Otras fuerzas'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.servEntidadesGubernamentales} ? '[X] Entidades gubernamentales' : '[ ] Entidades gubernamentales'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.servEmpresaPrivada} ? '[X] Empresa privada' : '[ ] Empresa privada'"></span>
+    <div class="texto-libre" th:text="${p.datosServiciosEspeciales.servDetalle}"></div>
+  </th:block>
+  <th:block th:if="${p.datosServiciosEspeciales.subtipo == 'REPRESENTACION'}">
+    <span class="check" th:text="${p.datosServiciosEspeciales.repDesfile} ? '[X] Desfile' : '[ ] Desfile'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repHonoresFunebres} ? '[X] Honores fúnebres' : '[ ] Honores fúnebres'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repAniversarios} ? '[X] Aniversarios' : '[ ] Aniversarios'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repEventosPublicos} ? '[X] Eventos públicos' : '[ ] Eventos públicos'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repEventosPrivados} ? '[X] Eventos privados' : '[ ] Eventos privados'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repCeremonias} ? '[X] Ceremonias' : '[ ] Ceremonias'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.repOtra} ? '[X] Otra: ' + ${p.datosServiciosEspeciales.repOtraDetalle} : '[ ] Otra'"></span>
+  </th:block>
+  <th:block th:if="${p.datosServiciosEspeciales.subtipo == 'PREVENCION'}">
+    <span class="check" th:text="${p.datosServiciosEspeciales.prevAterrizaje} ? '[X] Aterrizaje' : '[ ] Aterrizaje'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.prevDespegues} ? '[X] Despegues' : '[ ] Despegues'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.prevEventos} ? '[X] Eventos' : '[ ] Eventos'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.prevFiesta} ? '[X] Fiesta' : '[ ] Fiesta'"></span>
+    <span class="check" th:text="${p.datosServiciosEspeciales.prevOtra} ? '[X] Otra: ' + ${p.datosServiciosEspeciales.prevOtraDetalle} : '[ ] Otra'"></span>
+  </th:block>
+</th:block>
+
+<!-- Personas damnificadas: común a todos salvo que la lista venga vacía -->
+<th:block th:if="${not #lists.isEmpty(p.personasDamnificadas)}">
+  <h2 class="seccion">Personas damnificadas</h2>
+  <table class="tabla-datos">
+    <thead><tr><th>Rol</th><th>Nombre y apellido</th><th>DNI</th><th>Teléfono</th><th>Domicilio</th></tr></thead>
+    <tbody>
+      <tr th:each="pd : ${p.personasDamnificadas}">
+        <td th:text="${pd.rol}"></td><td th:text="${pd.nombreApellido}"></td><td th:text="${pd.dni}"></td>
+        <td th:text="${pd.telefono}"></td><td th:text="${pd.domicilio}"></td>
+      </tr>
+    </tbody>
+  </table>
+</th:block>
+
+<h2 class="seccion">Datos primordiales</h2>
+<p>
+  <span class="check" th:text="${p.datosPrimordiales.participoComisionDirectiva} ? '[X] Participó comisión directiva' : '[ ] Participó comisión directiva'"></span>
+  <span th:if="${p.datosPrimordiales.participoComisionDirectiva}" th:text="'- ' + ${p.datosPrimordiales.participoComisionDetalle}"></span>
+</p>
+<table class="fila-campos">
+  <tr>
+    <td style="width:20%;"><span class="etiqueta-campo">Hora llamado</span><span class="valor-campo" th:text="${p.datosPrimordiales.horaLlamado} != null ? ${#strings.substring(p.datosPrimordiales.horaLlamado, 0, 5)} : ''"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Hora salida</span><span class="valor-campo" th:text="${p.datosPrimordiales.horaSalida} != null ? ${#strings.substring(p.datosPrimordiales.horaSalida, 0, 5)} : ''"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Hora arribo</span><span class="valor-campo" th:text="${p.datosPrimordiales.horaArribo} != null ? ${#strings.substring(p.datosPrimordiales.horaArribo, 0, 5)} : ''"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Hora terminada</span><span class="valor-campo" th:text="${p.datosPrimordiales.horaTerminada} != null ? ${#strings.substring(p.datosPrimordiales.horaTerminada, 0, 5)} : ''"></span></td>
+    <td style="width:20%;"><span class="etiqueta-campo">Hora regreso</span><span class="valor-campo" th:text="${p.datosPrimordiales.horaRegresoCuartel} != null ? ${#strings.substring(p.datosPrimordiales.horaRegresoCuartel, 0, 5)} : ''"></span></td>
+  </tr>
+  <tr>
+    <td colspan="2"><span class="etiqueta-campo">A cargo</span><span class="valor-campo" th:text="${p.datosPrimordiales.aCargo}"></span></td>
+    <td colspan="1"><span class="etiqueta-campo">Operador</span><span class="valor-campo" th:text="${p.datosPrimordiales.operador}"></span></td>
+    <td colspan="1"><span class="etiqueta-campo">Móvil N°</span><span class="valor-campo" th:text="${p.datosPrimordiales.movilNro}"></span></td>
+    <td colspan="1"><span class="etiqueta-campo">Chofer</span><span class="valor-campo" th:text="${p.datosPrimordiales.chofer}"></span></td>
+  </tr>
+  <tr>
+    <td colspan="1"><span class="etiqueta-campo">Apoyo móvil N°</span><span class="valor-campo" th:text="${p.datosPrimordiales.apoyoMovilNro}"></span></td>
+    <td colspan="4"><span class="etiqueta-campo">Chofer (apoyo)</span><span class="valor-campo" th:text="${p.datosPrimordiales.choferApoyo}"></span></td>
+  </tr>
+  <tr>
+    <td colspan="5"><span class="etiqueta-campo">Dotación (móvil)</span><div class="texto-libre" th:text="${p.datosPrimordiales.dotacionMovil}"></div></td>
+  </tr>
+  <tr>
+    <td colspan="5"><span class="etiqueta-campo">Dotación (apoyo móvil)</span><div class="texto-libre" th:text="${p.datosPrimordiales.dotacionApoyoMovil}"></div></td>
+  </tr>
+</table>
+
+<h2 class="seccion">Entidades que intervino</h2>
+<table class="tabla-datos">
+  <thead><tr><th>Entidad</th><th>¿Se constató?</th><th>Móvil N°</th><th>A cargo</th></tr></thead>
+  <tbody>
+    <tr th:each="e : ${p.entidadesIntervino}">
+      <td th:text="${e.filaPrincipal} ? '(constatación)' : ${e.entidad}"></td>
+      <td th:text="${e.filaPrincipal} ? (${e.seConstato} ? 'Sí' : 'No') : ''"></td>
+      <td th:text="${e.movilNro}"></td>
+      <td th:text="${e.aCargo}"></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="pie">
+  <table class="pie-table">
+    <tr>
+      <td>
+        <div class="linea-firma">
+          Elaboró<br/>
+          <span th:text="${p.creadoPorNombre}"></span><br/>
+          <span th:text="${departamentoElaboracion}"></span>
+        </div>
+      </td>
+      <td>
+        <div class="linea-firma">
+          Aprobó<br/>
+          <span th:text="${jefeDeCuerpo}"></span>
+        </div>
+      </td>
+      <td>
+        <div class="linea-firma">
+          Firma y aclaración<br/>
+          <span th:text="${p.creadoPorNombre}"></span>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
 import ProtectedRoute from './routes/ProtectedRoute'
+import ForceLightTheme from './theme/ForceLightTheme'
 import LoginPage from './features/auth/pages/LoginPage'
 import RegistroPage from './features/auth/pages/RegistroPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
@@ -16,12 +17,18 @@ import NuevoEquipoPage from './features/inventario/pages/NuevoEquipoPage'
 import EditarEquipoPage from './features/inventario/pages/EditarEquipoPage'
 import EquipoDetallePage from './features/inventario/pages/EquipoDetallePage'
 import AdministracionPage from './features/administracion/pages/AdministracionPage'
+import AreasTrabajoPage from './features/areas-trabajo/pages/AreasTrabajoPage'
+import AreaTrabajoDetallePage from './features/areas-trabajo/pages/AreaTrabajoDetallePage'
+import PartesPage from './features/partes/pages/PartesPage'
+import SeleccionarTipoPartePage from './features/partes/pages/SeleccionarTipoPartePage'
+import ParteFormPage from './features/partes/pages/ParteFormPage'
+import ParteDetallePage from './features/partes/pages/ParteDetallePage'
 
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/registro" element={<RegistroPage />} />
+      <Route path="/login" element={<ForceLightTheme><LoginPage /></ForceLightTheme>} />
+      <Route path="/registro" element={<ForceLightTheme><RegistroPage /></ForceLightTheme>} />
 
       <Route
         element={
@@ -43,6 +50,13 @@ function App() {
         <Route path="/inventario/:id" element={<EquipoDetallePage />} />
         <Route path="/inventario/:id/editar" element={<EditarEquipoPage />} />
         <Route path="/administracion" element={<AdministracionPage />} />
+        <Route path="/areas-trabajo" element={<AreasTrabajoPage />} />
+        <Route path="/areas-trabajo/:id" element={<AreaTrabajoDetallePage />} />
+        <Route path="/partes" element={<PartesPage />} />
+        <Route path="/partes/nuevo" element={<SeleccionarTipoPartePage />} />
+        <Route path="/partes/nuevo/:tipo" element={<ParteFormPage />} />
+        <Route path="/partes/:id/editar" element={<ParteFormPage />} />
+        <Route path="/partes/:id" element={<ParteDetallePage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
