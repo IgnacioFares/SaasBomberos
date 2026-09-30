@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Actualizar código
+        run: |
+          cd "$HOME/SaasBomberos"
+          git pull --ff-only
+
+      - name: Reconstruir y levantar
+        run: |
+          cd "$HOME/SaasBomberos"
+          docker compose up -d --build
+
+      - name: Limpiar imágenes viejas
+        run: docker image prune -f
+
+      - name: Estado final
+        run: |
+          cd "$HOME/SaasBomberos"
+          docker compose ps
