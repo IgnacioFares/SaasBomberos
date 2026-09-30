@@ -14,15 +14,30 @@ import com.bomberos.saas_bomberos.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.bomberos.saas_bomberos.security.JwtService;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.List;
 import java.util.Set;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UsuarioService {
+
+    // Cuánto vale el código que se manda por mail al registrarse.
+    public static final int MINUTOS_VIGENCIA_CODIGO = 15;
+
+    // Mínimo entre dos envíos del código a la misma cuenta.
+    private static final int ESPERA_REENVIO_SEGUNDOS = 60;
+
+    private static final SecureRandom SORTEADOR = new SecureRandom();
 
     private final UsuarioRepository usuarioRepository;
     private final BomberoRepository bomberoRepository;
@@ -31,14 +46,17 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AutorizacionService autorizacion;
+    private final EmailService emailService;
 
     public Usuario registrar(String email, String password, Bombero bombero) {
-        if (usuarioRepository.existsByEmail(email)) {
+        String emailNormalizado = normalizarEmail(email);
+        if (usuarioRepository.existsByEmail(emailNormalizado)) {
             throw new RuntimeException("Ya existe un usuario con ese email");
         }
         if (bomberoRepository.existsByDni(bombero.getDni())) {
             throw new RuntimeException("Ya existe un bombero con ese DNI");
         }
+        PoliticaPassword.validar(password, emailNormalizado, bombero);
 
         Bombero bomberoGuardado = bomberoRepository.save(bombero);
 
@@ -52,11 +70,15 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Rol por defecto no configurado"));
 
         Usuario usuario = new Usuario();
-        usuario.setEmail(email);
+        usuario.setEmail(emailNormalizado);
         usuario.setPassword(passwordEncoder.encode(password));
         usuario.setBombero(bomberoGuardado);
         usuario.setRol(rol);
+        // Modo demo: la cuenta nace activa, sin código de verificación por
+        // mail. Para volver a exigirlo: estado "PENDIENTE",
+        // emailVerificado=false y llamar a generarYEnviarCodigo(usuario).
         usuario.setEstado("ACTIVO");
+        usuario.setEmailVerificado(true);
 
         return usuarioRepository.save(usuario);
     }
@@ -135,13 +157,97 @@ public class UsuarioService {
     }
 
     public String login(String email, String password) {
-        Usuario usuario = usuarioRepository.findByEmail(email)
+        Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
                 .orElseThrow(() -> new RuntimeException("Email o contraseña incorrectos"));
 
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
             throw new RuntimeException("Email o contraseña incorrectos");
         }
 
+        // El mensaje es distinto a propósito: acá la contraseña ya se
+        // validó, así que no se le está confirmando a un desconocido
+        // que la cuenta existe.
+        if (!estaVerificado(usuario)) {
+            throw new EmailNoVerificadoException(
+                    "Falta verificar tu email. Te mandamos un código a " + usuario.getEmail() + ".");
+        }
+
         return jwtService.generarToken(usuario.getEmail());
+    }
+
+    // ------------------------------------------------------------------
+    // Verificación de email
+    // ------------------------------------------------------------------
+
+    // Las cuentas anteriores a esta función tienen el campo en null: se
+    // consideran verificadas para no dejar afuera a quien ya venía
+    // usando el sistema.
+    private boolean estaVerificado(Usuario usuario) {
+        return !Boolean.FALSE.equals(usuario.getEmailVerificado());
+    }
+
+    public void verificarEmail(String email, String codigo) {
+        Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
+                .orElseThrow(() -> new RuntimeException("No hay ninguna cuenta con ese email"));
+
+        if (estaVerificado(usuario)) {
+            throw new RuntimeException("Esta cuenta ya está verificada. Ya podés ingresar.");
+        }
+        if (usuario.getCodigoVerificacion() == null || usuario.getCodigoExpiraEn() == null) {
+            throw new RuntimeException("No hay un código pendiente. Pedí uno nuevo.");
+        }
+        if (LocalDateTime.now().isAfter(usuario.getCodigoExpiraEn())) {
+            throw new RuntimeException("El código venció. Pedí uno nuevo.");
+        }
+        // Comparación en tiempo constante: con códigos de 6 dígitos que
+        // además vencen, medir tiempos no alcanza para adivinarlos, pero
+        // no cuesta nada hacerlo bien.
+        if (!MessageDigest.isEqual(
+                usuario.getCodigoVerificacion().getBytes(StandardCharsets.UTF_8),
+                codigo.trim().getBytes(StandardCharsets.UTF_8))) {
+            throw new RuntimeException("El código no es correcto");
+        }
+
+        usuario.setEmailVerificado(true);
+        usuario.setEstado("ACTIVO");
+        usuario.setCodigoVerificacion(null);
+        usuario.setCodigoExpiraEn(null);
+        usuarioRepository.save(usuario);
+    }
+
+    public void reenviarCodigo(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
+                .orElseThrow(() -> new RuntimeException("No hay ninguna cuenta con ese email"));
+
+        if (estaVerificado(usuario)) {
+            throw new RuntimeException("Esta cuenta ya está verificada. Ya podés ingresar.");
+        }
+        if (usuario.getCodigoEnviadoEn() != null
+                && usuario.getCodigoEnviadoEn().isAfter(
+                        LocalDateTime.now().minusSeconds(ESPERA_REENVIO_SEGUNDOS))) {
+            throw new RuntimeException("Esperá un minuto antes de pedir otro código");
+        }
+
+        generarYEnviarCodigo(usuario);
+        usuarioRepository.save(usuario);
+    }
+
+    private void generarYEnviarCodigo(Usuario usuario) {
+        // 6 dígitos con ceros a la izquierda, sorteados con el generador
+        // criptográfico (no con Math.random, que es predecible).
+        String codigo = String.format("%06d", SORTEADOR.nextInt(1_000_000));
+
+        usuario.setCodigoVerificacion(codigo);
+        usuario.setCodigoExpiraEn(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_CODIGO));
+        usuario.setCodigoEnviadoEn(LocalDateTime.now());
+
+        String nombre = usuario.getBombero() != null ? usuario.getBombero().getNombre() : "";
+        emailService.enviarCodigoVerificacion(usuario.getEmail(), codigo, nombre);
+    }
+
+    // Los emails se guardan en minúsculas y sin espacios: si no,
+    // "Juan@X.com" y "juan@x.com" crean dos cuentas distintas.
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 }

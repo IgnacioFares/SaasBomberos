@@ -10,6 +10,7 @@ public final class PermisosCatalogo {
     public record PermisoDef(String nombre, String etiqueta, String descripcion) {}
 
     public static final String GESTIONAR_MOVILIDADES = "gestionar_movilidades";
+    public static final String DESPACHAR_MOVILIDADES = "despachar_movilidades";
     public static final String CREAR_CHECKLISTS = "crear_checklists";
     public static final String FIRMAR_CHECKLISTS = "firmar_checklists";
     public static final String GESTIONAR_INVENTARIO = "gestionar_inventario";
@@ -21,6 +22,8 @@ public final class PermisosCatalogo {
     public static final List<PermisoDef> CATALOGO = List.of(
             new PermisoDef(GESTIONAR_MOVILIDADES, "Gestionar movilidades",
                     "Crear, editar y eliminar movilidades del cuartel"),
+            new PermisoDef(DESPACHAR_MOVILIDADES, "Despachar movilidades",
+                    "Despachar movilidades a una salida y seguirlas en el mapa"),
             new PermisoDef(CREAR_CHECKLISTS, "Crear checklists",
                     "Crear, editar y eliminar plantillas de checklist"),
             new PermisoDef(FIRMAR_CHECKLISTS, "Firmar checklists",

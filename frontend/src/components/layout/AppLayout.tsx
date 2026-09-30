@@ -19,6 +19,7 @@ import FireTruckRoundedIcon from '@mui/icons-material/FireTruckRounded'
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import DirectionsCarFilledRoundedIcon from '@mui/icons-material/DirectionsCarFilledRounded'
+import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import ChecklistRoundedIcon from '@mui/icons-material/ChecklistRounded'
 import Inventory2RoundedIcon from '@mui/icons-material/Inventory2Rounded'
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded'
@@ -39,6 +40,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: DashboardRoundedIcon },
   { to: '/bomberos', label: 'Personal', icon: PeopleAltRoundedIcon },
   { to: '/movilidades', label: 'Movilidades', icon: DirectionsCarFilledRoundedIcon },
+  { to: '/despachos', label: 'Despachos y rastreo', icon: MyLocationRoundedIcon },
   { to: '/checklists', label: 'Checklists', icon: ChecklistRoundedIcon },
   { to: '/inventario', label: 'Inventario', icon: Inventory2RoundedIcon },
   { to: '/partes', label: 'Partes de intervención', icon: DescriptionRoundedIcon },

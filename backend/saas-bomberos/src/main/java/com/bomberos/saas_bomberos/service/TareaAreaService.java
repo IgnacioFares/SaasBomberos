@@ -12,6 +12,7 @@ import com.bomberos.saas_bomberos.repository.BomberoRepository;
 import com.bomberos.saas_bomberos.repository.TareaAreaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TareaAreaService {
 

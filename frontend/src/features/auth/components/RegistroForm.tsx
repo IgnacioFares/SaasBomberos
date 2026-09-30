@@ -4,12 +4,18 @@ import {
   Box,
   Button,
   Divider,
+  IconButton,
+  InputAdornment,
   MenuItem,
   TextField,
   Typography,
 } from '@mui/material'
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded'
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded'
 import type { RegisterRequest } from '../types'
 import { GRUPOS_SANGUINEOS, RANGOS } from '../../bomberos/constants'
+import { LARGO_MAXIMO, LARGO_MINIMO, cumpleTodo } from '../politicaPassword'
+import RequisitosPassword from './RequisitosPassword'
 
 interface Props {
   onRegistrar: (datos: RegisterRequest) => void
@@ -18,6 +24,8 @@ interface Props {
 }
 
 const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
+  const [repetirPassword, setRepetirPassword] = useState('')
+  const [verPassword, setVerPassword] = useState(false)
   const [form, setForm] = useState<RegisterRequest>({
     email: '',
     password: '',
@@ -46,8 +54,21 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
     })
   }
 
+  // La contraseña no puede armarse con los datos de la propia persona,
+  // así que la validación necesita verlos.
+  const datosPersonales = {
+    email: form.email,
+    nombre: form.bombero.nombre,
+    apellido: form.bombero.apellido,
+    dni: form.bombero.dni,
+  }
+  const coinciden = form.password === repetirPassword
+  const passwordValida = cumpleTodo(form.password, datosPersonales)
+  const puedeEnviar = passwordValida && coinciden && !loading
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!puedeEnviar) return
     onRegistrar({ ...form, bombero: { ...form.bombero, email: form.email } })
   }
 
@@ -57,7 +78,7 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
         <Typography variant="subtitle2" className="mb-2! font-semibold!" color="text.secondary">
           Datos de acceso
         </Typography>
-        <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Box className="flex flex-col gap-4">
           <TextField
             name="email"
             type="email"
@@ -66,16 +87,63 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
             onChange={handleChangeUsuario}
             required
             fullWidth
+            helperText="Te vamos a mandar un código a esta dirección para verificarla"
           />
-          <TextField
-            name="password"
-            type="password"
-            label="Contraseña"
-            value={form.password}
-            onChange={handleChangeUsuario}
-            required
-            fullWidth
-          />
+          <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextField
+              name="password"
+              type={verPassword ? 'text' : 'password'}
+              label="Contraseña"
+              value={form.password}
+              onChange={handleChangeUsuario}
+              required
+              fullWidth
+              // Con el campo vacío no hay checklist que mostrar, así que
+              // la regla va acá: si no, el botón queda gris sin motivo
+              // visible.
+              helperText={
+                form.password.length === 0
+                  ? `Mínimo ${LARGO_MINIMO} caracteres, con mayúscula, minúscula y número`
+                  : ' '
+              }
+              slotProps={{
+                htmlInput: { minLength: LARGO_MINIMO, maxLength: LARGO_MAXIMO },
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setVerPassword((prev) => !prev)}
+                        edge="end"
+                        size="small"
+                        aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      >
+                        {verPassword ? (
+                          <VisibilityOffRoundedIcon fontSize="small" />
+                        ) : (
+                          <VisibilityRoundedIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <TextField
+              name="repetirPassword"
+              type={verPassword ? 'text' : 'password'}
+              label="Repetir contraseña"
+              value={repetirPassword}
+              onChange={(e) => setRepetirPassword(e.target.value)}
+              required
+              fullWidth
+              error={repetirPassword.length > 0 && !coinciden}
+              helperText={
+                repetirPassword.length > 0 && !coinciden ? 'Las contraseñas no coinciden' : ' '
+              }
+            />
+          </Box>
+
+          <RequisitosPassword password={form.password} datos={datosPersonales} />
         </Box>
       </Box>
 
@@ -198,7 +266,7 @@ const RegistroForm = ({ onRegistrar, loading, error }: Props) => {
         variant="contained"
         color="primary"
         size="large"
-        disabled={loading}
+        disabled={!puedeEnviar}
         fullWidth
         className="py-2.5!"
       >

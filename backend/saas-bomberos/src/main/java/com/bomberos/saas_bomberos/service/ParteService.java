@@ -9,6 +9,7 @@ import com.bomberos.saas_bomberos.entity.*;
 import com.bomberos.saas_bomberos.repository.ParteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ParteService {
 
@@ -132,10 +134,10 @@ public class ParteService {
         boolean esAdmin = autorizacion.esAdministrador(usuario);
         boolean esCreador = usuario.getId() != null && Objects.equals(parte.getCreadoPor().getId(), usuario.getId());
         if (!esAdmin && !esCreador) {
-            throw new RuntimeException("Solo quien creó el parte o un administrador puede editarlo");
+            throw new AccesoDenegadoException("Solo quien creó el parte o un administrador puede editarlo");
         }
         if (!esAdmin && parte.getEstado() == ParteEstado.FINALIZADO) {
-            throw new RuntimeException("El parte está finalizado; solo un administrador puede reabrirlo");
+            throw new AccesoDenegadoException("El parte está finalizado; solo un administrador puede reabrirlo");
         }
     }
 

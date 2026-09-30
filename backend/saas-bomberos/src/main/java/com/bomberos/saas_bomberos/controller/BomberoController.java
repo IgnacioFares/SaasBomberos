@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bomberos")
@@ -54,12 +53,5 @@ public class BomberoController {
     public ResponseEntity<Void> desactivar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
         bomberoService.desactivar(id, usuario);
         return ResponseEntity.noContent().build();
-    }
-
-    // Traduce los RuntimeException de negocio del Service (DNI
-    // duplicado, bombero no encontrado) a un 400 con el mensaje real.
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> manejarErrorDeNegocio(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("mensaje", ex.getMessage()));
     }
 }

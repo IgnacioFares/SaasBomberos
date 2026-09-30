@@ -12,11 +12,13 @@ import com.bomberos.saas_bomberos.repository.ChecklistTemplateRepository;
 import com.bomberos.saas_bomberos.repository.MovilidadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ChecklistTemplateService {
 
@@ -25,7 +27,7 @@ public class ChecklistTemplateService {
     private final AutorizacionService autorizacion;
 
     public ChecklistTemplateResponse crear(ChecklistTemplateRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "crear");
+        exigirPermiso(usuario);
 
         ChecklistTemplate template = new ChecklistTemplate();
         template.setCreadoPor(usuario);
@@ -35,7 +37,7 @@ public class ChecklistTemplateService {
     }
 
     public ChecklistTemplateResponse actualizar(Long id, ChecklistTemplateRequest request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        exigirPermiso(usuario);
 
         ChecklistTemplate template = obtenerEntidad(id);
         // Reemplazar secciones/items es seguro: los registros históricos
@@ -54,7 +56,7 @@ public class ChecklistTemplateService {
     }
 
     public void eliminar(Long id, Usuario usuario) {
-        exigirPermiso(usuario, "eliminar");
+        exigirPermiso(usuario);
         ChecklistTemplate template = obtenerEntidad(id);
         template.setActivo(false);
         templateRepository.save(template);
@@ -132,7 +134,7 @@ public class ChecklistTemplateService {
 
     // Crear/editar/eliminar plantillas requiere el permiso
     // "crear_checklists"; realizarlas queda libre para todos.
-    private void exigirPermiso(Usuario usuario, String accion) {
+    private void exigirPermiso(Usuario usuario) {
         autorizacion.exigir(usuario, PermisosCatalogo.CREAR_CHECKLISTS);
     }
 

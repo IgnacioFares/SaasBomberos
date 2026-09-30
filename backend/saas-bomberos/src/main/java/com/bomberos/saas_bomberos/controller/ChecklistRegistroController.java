@@ -11,7 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/checklists/registros")
@@ -50,10 +49,5 @@ public class ChecklistRegistroController {
             @AuthenticationPrincipal Usuario usuario
     ) {
         return ResponseEntity.ok(registroService.firmar(id, usuario));
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> manejarErrorDeNegocio(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("mensaje", ex.getMessage()));
     }
 }

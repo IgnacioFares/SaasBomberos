@@ -21,6 +21,7 @@ import com.bomberos.saas_bomberos.repository.EquipoRepository;
 import com.bomberos.saas_bomberos.repository.UbicacionEquipoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class EquipoService {
 

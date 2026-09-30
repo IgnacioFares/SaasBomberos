@@ -7,6 +7,8 @@ import RegistroPage from './features/auth/pages/RegistroPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
 import BomberosPage from './features/bomberos/pages/BomberosPage'
 import MovilidadesPage from './features/movilidades/pages/MovilidadesPage'
+import DespachosPage from './features/despachos/pages/DespachosPage'
+import DespachoMapaPage from './features/despachos/pages/DespachoMapaPage'
 import ChecklistsPage from './features/checklists/pages/ChecklistsPage'
 import NuevoChecklistPage from './features/checklists/pages/NuevoChecklistPage'
 import EditarChecklistPage from './features/checklists/pages/EditarChecklistPage'
@@ -40,6 +42,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/bomberos" element={<BomberosPage />} />
         <Route path="/movilidades" element={<MovilidadesPage />} />
+        <Route path="/despachos" element={<DespachosPage />} />
+        <Route path="/despachos/:id" element={<DespachoMapaPage />} />
         <Route path="/checklists" element={<ChecklistsPage />} />
         <Route path="/checklists/nuevo" element={<NuevoChecklistPage />} />
         <Route path="/checklists/:id/editar" element={<EditarChecklistPage />} />

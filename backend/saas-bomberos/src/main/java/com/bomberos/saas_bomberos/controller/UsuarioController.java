@@ -5,8 +5,13 @@ import com.bomberos.saas_bomberos.dto.UsuarioAdminDto;
 import com.bomberos.saas_bomberos.entity.Bombero;
 import com.bomberos.saas_bomberos.entity.Usuario;
 import com.bomberos.saas_bomberos.service.AutorizacionService;
+import com.bomberos.saas_bomberos.service.PoliticaPassword;
 import com.bomberos.saas_bomberos.service.UsuarioService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 // Le dice a Spring: "esta clase es un controlador REST, recibe peticiones
@@ -38,8 +42,11 @@ public class UsuarioController {
     private final AutorizacionService autorizacion;
 
     // Escucha peticiones POST a /api/usuarios/registro
+    //
+    // La cuenta queda activa al instante y se devuelve el token para que
+    // el frontend entre directo, sin pasar por el login.
     @PostMapping("/registro")
-    public ResponseEntity<Usuario> registrar(@Valid @RequestBody RegistroRequest request) {
+    public ResponseEntity<LoginResponse> registrar(@Valid @RequestBody RegistroRequest request) {
         // @RequestBody: convierte el JSON que llega en el body de la
         //   petición en un objeto Java del tipo RegistroRequest.
         // @Valid: activa las validaciones (@NotBlank, @Email, etc.)
@@ -47,15 +54,28 @@ public class UsuarioController {
 
         // Le pasamos al Service los tres datos que necesita para crear
         // el Usuario y el Bombero juntos.
-        Usuario usuario = usuarioService.registrar(
+        usuarioService.registrar(
                 request.getEmail(),
                 request.getPassword(),
                 request.getBombero()
         );
 
-        // Devolvemos código 201 CREATED (se creó un recurso nuevo)
-        // junto con el usuario recién creado en el body de la respuesta.
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuario);
+        String token = usuarioService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.status(HttpStatus.CREATED).body(new LoginResponse(token));
+    }
+
+    // Confirma el código que llegó por mail y habilita la cuenta.
+    @PostMapping("/verificar-email")
+    public ResponseEntity<Void> verificarEmail(@Valid @RequestBody VerificacionRequest request) {
+        usuarioService.verificarEmail(request.getEmail(), request.getCodigo());
+        return ResponseEntity.noContent().build();
+    }
+
+    // Manda otro código, para cuando el primero venció o no llegó.
+    @PostMapping("/reenviar-codigo")
+    public ResponseEntity<Void> reenviarCodigo(@Valid @RequestBody ReenvioRequest request) {
+        usuarioService.reenviarCodigo(request.getEmail());
+        return ResponseEntity.noContent().build();
     }
 
     // Escucha peticiones POST a /api/usuarios/login
@@ -150,15 +170,6 @@ public class UsuarioController {
         ));
     }
 
-    // Traduce los RuntimeException de negocio del Service (email/DNI
-    // duplicado, credenciales incorrectas, etc.) a una respuesta 400
-    // con el mensaje real, en lugar del 500 genérico que devolvía
-    // Spring por defecto (que además no expone el mensaje al cliente).
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> manejarErrorDeNegocio(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("mensaje", ex.getMessage()));
-    }
-
     // ---------------------------------------------------------
     // Clases DTO (Data Transfer Object): representan la FORMA
     // del JSON que entra o sale por la API. No son entidades de
@@ -171,16 +182,50 @@ public class UsuarioController {
     // { "email": "...", "password": "...", "bombero": { ... } }
     @Data
     static class RegistroRequest {
+        @NotBlank(message = "El email es obligatorio")
+        @Email(message = "El email no tiene un formato válido")
         private String email;
+
+        // El largo mínimo y el resto de las reglas se validan en
+        // PoliticaPassword, que es donde vive la política completa y
+        // puede mirar también el nombre y el email de la persona.
+        @NotBlank(message = "La contraseña es obligatoria")
+        @Size(min = PoliticaPassword.LARGO_MINIMO,
+                message = "La contraseña debe tener al menos 10 caracteres")
         private String password;
+
+        @NotNull(message = "Faltan los datos del bombero")
+        @Valid
         private Bombero bombero;
+    }
+
+    // { "email": "...", "codigo": "123456" }
+    @Data
+    static class VerificacionRequest {
+        @NotBlank(message = "El email es obligatorio")
+        @Email(message = "El email no tiene un formato válido")
+        private String email;
+
+        @NotBlank(message = "Escribí el código que te llegó por mail")
+        private String codigo;
+    }
+
+    // { "email": "..." }
+    @Data
+    static class ReenvioRequest {
+        @NotBlank(message = "El email es obligatorio")
+        @Email(message = "El email no tiene un formato válido")
+        private String email;
     }
 
     // Forma del JSON que el frontend manda al loguearse:
     // { "email": "...", "password": "..." }
     @Data
     static class LoginRequest {
+        @NotBlank(message = "El email es obligatorio")
         private String email;
+
+        @NotBlank(message = "La contraseña es obligatoria")
         private String password;
     }
 

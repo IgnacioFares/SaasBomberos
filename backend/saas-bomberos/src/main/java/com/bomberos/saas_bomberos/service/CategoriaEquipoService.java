@@ -8,10 +8,12 @@ import com.bomberos.saas_bomberos.repository.CategoriaEquipoRepository;
 import com.bomberos.saas_bomberos.repository.EquipoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class CategoriaEquipoService {
 
@@ -26,21 +28,21 @@ public class CategoriaEquipoService {
     }
 
     public CategoriaEquipoDto.Response crear(CategoriaEquipoDto.Request request, Usuario usuario) {
-        exigirPermiso(usuario, "crear");
+        exigirPermiso(usuario);
         CategoriaEquipo categoria = new CategoriaEquipo();
         aplicar(categoria, request);
         return mapear(categoriaRepository.save(categoria));
     }
 
     public CategoriaEquipoDto.Response actualizar(Long id, CategoriaEquipoDto.Request request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        exigirPermiso(usuario);
         CategoriaEquipo categoria = obtenerEntidad(id);
         aplicar(categoria, request);
         return mapear(categoriaRepository.save(categoria));
     }
 
     public void eliminar(Long id, Usuario usuario) {
-        exigirPermiso(usuario, "eliminar");
+        exigirPermiso(usuario);
         CategoriaEquipo categoria = obtenerEntidad(id);
 
         if (equipoRepository.existsByCategoriaIdAndActivoTrue(id)
@@ -71,6 +73,13 @@ public class CategoriaEquipoService {
             if (padre.getId().equals(categoria.getId())) {
                 throw new RuntimeException("Una categoría no puede ser su propia subcategoría");
             }
+            // Si esta categoría ya tiene subcategorías propias, colgarla de
+            // otra dejaría una jerarquía de tres niveles, que el resto del
+            // inventario no contempla (ver EquipoService#aplicarDatos).
+            if (categoria.getId() != null && categoriaRepository.existsByPadreIdAndActivoTrue(categoria.getId())) {
+                throw new RuntimeException(
+                        "\"" + categoria.getNombre() + "\" tiene subcategorías: no puede pasar a ser subcategoría de otra");
+            }
             categoria.setPadre(padre);
         } else {
             categoria.setPadre(null);
@@ -83,7 +92,7 @@ public class CategoriaEquipoService {
     }
 
     // Administrar categorías requiere el permiso "gestionar_inventario".
-    private void exigirPermiso(Usuario usuario, String accion) {
+    private void exigirPermiso(Usuario usuario) {
         autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
     }
 

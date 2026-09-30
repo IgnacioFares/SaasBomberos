@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 
 // Las tareas siempre cuelgan de un área (por eso alta y listado van
 // anidados bajo /api/areas-trabajo/{areaId}/tareas); eliminar y
@@ -52,10 +51,5 @@ public class TareaAreaController {
             @AuthenticationPrincipal Usuario usuario
     ) {
         return ResponseEntity.ok(tareaAreaService.marcarRealizada(id, usuario));
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> manejarErrorDeNegocio(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("mensaje", ex.getMessage()));
     }
 }

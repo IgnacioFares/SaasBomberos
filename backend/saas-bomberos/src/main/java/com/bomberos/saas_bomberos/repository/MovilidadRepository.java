@@ -11,4 +11,8 @@ public interface MovilidadRepository extends JpaRepository<Movilidad, Long> {
     List<Movilidad> findByActivoTrue();
 
     boolean existsByPatente(String patente);
+
+    // Para validar la patente al editar: excluye a la propia movilidad,
+    // que obviamente ya tiene esa patente.
+    boolean existsByPatenteAndIdNot(String patente, Long id);
 }

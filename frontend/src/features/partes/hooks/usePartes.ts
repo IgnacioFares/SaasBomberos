@@ -10,6 +10,7 @@ const usePartes = () => {
 
   const cargarPartes = async () => {
     setLoading(true)
+    setError(null)
     try {
       const datos = await getPartes()
       setPartes(datos)

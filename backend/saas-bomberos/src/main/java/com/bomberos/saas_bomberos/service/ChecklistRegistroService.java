@@ -17,6 +17,7 @@ import com.bomberos.saas_bomberos.repository.ChecklistRegistroRepository;
 import com.bomberos.saas_bomberos.repository.ChecklistTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ChecklistRegistroService {
 

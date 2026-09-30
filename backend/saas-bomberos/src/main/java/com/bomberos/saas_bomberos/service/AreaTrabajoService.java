@@ -13,6 +13,7 @@ import com.bomberos.saas_bomberos.repository.BomberoRepository;
 import com.bomberos.saas_bomberos.repository.TareaAreaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AreaTrabajoService {
 
@@ -88,7 +90,7 @@ public class AreaTrabajoService {
                 && Objects.equals(area.getEncargado().getId(), usuario.getBombero().getId())) {
             return;
         }
-        throw new RuntimeException("Solo el encargado del área o un administrador puede hacer esto");
+        throw new AccesoDenegadoException("Solo el encargado del área o un administrador puede hacer esto");
     }
 
     public AreaTrabajo obtenerEntidad(Long id) {

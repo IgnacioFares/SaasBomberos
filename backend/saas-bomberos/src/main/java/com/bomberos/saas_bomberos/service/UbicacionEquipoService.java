@@ -7,10 +7,12 @@ import com.bomberos.saas_bomberos.entity.Usuario;
 import com.bomberos.saas_bomberos.repository.UbicacionEquipoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class UbicacionEquipoService {
 
@@ -24,7 +26,7 @@ public class UbicacionEquipoService {
     }
 
     public UbicacionEquipoDto.Response crear(UbicacionEquipoDto.Request request, Usuario usuario) {
-        exigirPermiso(usuario, "crear");
+        exigirPermiso(usuario);
         validarNombre(request, null);
         UbicacionEquipo ubicacion = new UbicacionEquipo();
         ubicacion.setNombre(request.nombre().trim());
@@ -32,7 +34,7 @@ public class UbicacionEquipoService {
     }
 
     public UbicacionEquipoDto.Response actualizar(Long id, UbicacionEquipoDto.Request request, Usuario usuario) {
-        exigirPermiso(usuario, "editar");
+        exigirPermiso(usuario);
         UbicacionEquipo ubicacion = obtenerEntidad(id);
         validarNombre(request, id);
         ubicacion.setNombre(request.nombre().trim());
@@ -42,7 +44,7 @@ public class UbicacionEquipoService {
     // Baja lógica: la ubicación deja de ofrecerse para equipos nuevos,
     // pero los equipos que ya la referencian siguen mostrando su nombre.
     public void eliminar(Long id, Usuario usuario) {
-        exigirPermiso(usuario, "eliminar");
+        exigirPermiso(usuario);
         UbicacionEquipo ubicacion = obtenerEntidad(id);
         ubicacion.setActivo(false);
         ubicacionRepository.save(ubicacion);
@@ -66,7 +68,7 @@ public class UbicacionEquipoService {
     }
 
     // Administrar ubicaciones requiere el permiso "gestionar_inventario".
-    private void exigirPermiso(Usuario usuario, String accion) {
+    private void exigirPermiso(Usuario usuario) {
         autorizacion.exigir(usuario, PermisosCatalogo.GESTIONAR_INVENTARIO);
     }
 

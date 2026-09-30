@@ -36,14 +36,14 @@ public class AutorizacionService {
         if (!tiene(usuario, permiso)) {
             PermisosCatalogo.PermisoDef def = PermisosCatalogo.porNombre(permiso);
             String etiqueta = def != null ? def.etiqueta() : permiso;
-            throw new RuntimeException(
+            throw new AccesoDenegadoException(
                     "Necesitás el permiso \"" + etiqueta + "\". Pedíselo a un administrador.");
         }
     }
 
     public void exigirAdministrador(Usuario usuario) {
         if (!esAdministrador(usuario)) {
-            throw new RuntimeException("Solo un administrador puede hacer esto");
+            throw new AccesoDenegadoException("Solo un administrador puede hacer esto");
         }
     }
 

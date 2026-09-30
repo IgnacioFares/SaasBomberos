@@ -6,7 +6,7 @@ import {
   obtenerUsuarioActual,
 } from '../services/authService'
 import { AuthContext } from './authContextInstance'
-import { extraerMensajeError } from '../../../utils/http'
+import { extraerMensajeError, esEmailNoVerificado } from '../../../utils/http'
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
@@ -35,20 +35,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('token', respuesta.token)
       const usuarioActual = await obtenerUsuarioActual()
       setUsuario(usuarioActual)
-      return true
+      return { ok: true, faltaVerificar: false }
     } catch (err) {
       localStorage.removeItem('token')
+      // Si la contraseña era correcta pero falta confirmar el email, no
+      // es un error a mostrar en rojo: el login ofrece verificarlo.
+      if (esEmailNoVerificado(err)) {
+        setError(null)
+        return { ok: false, faltaVerificar: true }
+      }
       setError(extraerMensajeError(err, 'Email o contraseña incorrectos'))
-      return false
+      return { ok: false, faltaVerificar: false }
     }
   }
 
   const registrarse = async (datos: RegisterRequest) => {
     setError(null)
     try {
-      await registrarRequest(datos)
+      const respuesta = await registrarRequest(datos)
+      localStorage.setItem('token', respuesta.token)
+      setUsuario(await obtenerUsuarioActual())
       return true
     } catch (err) {
+      localStorage.removeItem('token')
       setError(extraerMensajeError(err, 'No se pudo completar el registro. Verificá los datos ingresados.'))
       return false
     }

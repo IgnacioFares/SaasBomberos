@@ -39,6 +39,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/usuarios/registro", "/api/usuarios/login").permitAll()
+                        // La verificación del email pasa antes de que
+                        // exista una sesión: no puede exigir token.
+                        .requestMatchers("/api/usuarios/verificar-email", "/api/usuarios/reenviar-codigo").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

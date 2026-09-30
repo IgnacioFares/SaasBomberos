@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link as RouterLink, Navigate, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, Navigate } from 'react-router-dom'
 import { Link, Typography } from '@mui/material'
 import AuthLayout from '../components/AuthLayout'
 import RegistroForm from '../components/RegistroForm'
@@ -8,7 +8,6 @@ import type { RegisterRequest } from '../types'
 
 const RegistroPage = () => {
   const { estaAutenticado, cargando, error, registrarse } = useAuthContext()
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
 
   if (!cargando && estaAutenticado) {
@@ -17,14 +16,8 @@ const RegistroPage = () => {
 
   const handleRegistrar = async (datos: RegisterRequest) => {
     setLoading(true)
-    const ok = await registrarse(datos)
+    await registrarse(datos)
     setLoading(false)
-    if (ok) {
-      navigate('/login', {
-        replace: true,
-        state: { mensaje: 'Cuenta creada con éxito. Ya podés iniciar sesión.' },
-      })
-    }
   }
 
   return (

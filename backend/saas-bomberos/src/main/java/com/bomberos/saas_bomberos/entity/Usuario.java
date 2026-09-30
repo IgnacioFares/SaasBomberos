@@ -51,6 +51,27 @@ public class Usuario {
     @Column(nullable = false)
     private String estado = "PENDIENTE";
 
+    // Verificación del email. Es Boolean (admite null) a propósito: las
+    // cuentas creadas antes de que existiera la verificación quedan en
+    // null y se consideran verificadas, para no dejar afuera a nadie
+    // que ya venía usando el sistema. Las nuevas nacen en false.
+    @Column(name = "email_verificado")
+    private Boolean emailVerificado;
+
+    @JsonIgnore
+    @Column(name = "codigo_verificacion")
+    private String codigoVerificacion;
+
+    @JsonIgnore
+    @Column(name = "codigo_expira_en")
+    private LocalDateTime codigoExpiraEn;
+
+    // Cuándo se mandó el último código, para no permitir reenviarlo a
+    // repetición ni convertir el registro en un enviador de spam.
+    @JsonIgnore
+    @Column(name = "codigo_enviado_en")
+    private LocalDateTime codigoEnviadoEn;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

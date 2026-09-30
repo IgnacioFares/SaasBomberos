@@ -3,6 +3,7 @@ import { useAuthContext } from './useAuthContext'
 // Nombres de los permisos funcionales (espejo del catálogo del backend).
 export const PERMISOS = {
   GESTIONAR_MOVILIDADES: 'gestionar_movilidades',
+  DESPACHAR_MOVILIDADES: 'despachar_movilidades',
   CREAR_CHECKLISTS: 'crear_checklists',
   FIRMAR_CHECKLISTS: 'firmar_checklists',
   GESTIONAR_INVENTARIO: 'gestionar_inventario',
